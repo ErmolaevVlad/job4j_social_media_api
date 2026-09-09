@@ -29,3 +29,31 @@ CREATE DATABASE social_media;
 ```
 
 Для выхода из консоли `psql` введите `\q`.
+
+### Команды проекта
+
+Запуск и остановка окружения  
+
+```bash
+docker compose up -d
+docker compose down
+```
+
+Проверка состояния сервисов
+
+```bash
+docker compose ps
+```
+
+Запуск приложения и тестов в Linux, macOS
+
+```bash
+./mvnw test
+./mvnw spring-boot:run
+```
+Запуск приложения и тестов в Windows
+
+```bash
+mvnw.cmd test
+mvnw.cmd spring-boot:run
+```
