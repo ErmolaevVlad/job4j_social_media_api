@@ -1,38 +1,39 @@
 ### L1-сценарий создания дружбы
 Пользователь А отправляет заявку в друзья Пользователю Б  
-→ создается заявка статус PENDING  
+→ создается заявка, статус PENDING  
 → Пользователь А становится подписчиком Пользователя Б  
 → Пользователь Б принимает заявку  
-→ система создает дружбу между пользователями А и Б 
+→ система создает дружбу между Пользователями А и Б 
 → Пользователь Б становится подписчиком Пользователя А  
 
 ### Диаграмма последовательности для принятия заявки
-@startuml  
-actor User 
-participant FriendRequestController as Controller  
-participant FriendRequestService as Service  
-participant FriendRequestRepository as Repository
-database DB  
+```mermaid
+sequenceDiagram
+    actor User as User
+    participant Controller as FriendRequestController
+    participant Service as FriendRequestService
+    participant Repository as FriendRequestRepository
+    participant DB as DB
 
-User -> Controller : принять заявку  
-Controller -> Service : accept(requestId, userId)  
-Service -> Repository : findById(requestId)  
-Repository -> DB : SELECT friend_request  
-DB --> Repository : заявка  
-Repository --> Service : FriendRequest  
+    User ->> Controller: принять заявку
+    Controller ->> Service: accept(requestId, userId)
+    Service ->> Repository: findById(requestId)
+    Repository ->> DB: SELECT friend_request
+    DB -->> Repository: заявка
+    Repository -->> Service: FriendRequest
 
-alt заявка существует и находится в PENDING  
-Service -> Repository : save(ACCEPTED)  
-Repository -> DB : UPDATE friend_request  
-DB --> Repository : результат  
-Repository --> Service : сохранённая заявка  
-Service --> Controller : результат операции  
-Controller --> User : заявка принята  
-else переход запрещён  
-Service --> Controller : ошибка процесса  
-Controller --> User : сообщение об ошибке  
-end  
-@enduml  
+    alt заявка существует и находится в PENDING
+        Service ->> Repository: save(ACCEPTED)
+        Repository ->> DB: UPDATE friend_request
+        DB -->> Repository: результат
+        Repository -->> Service: сохранённая заявка
+        Service -->> Controller: результат операции
+        Controller -->> User: заявка принята
+    else переход запрещён
+        Service -->> Controller: ошибка процесса
+        Controller -->> User: сообщение об ошибке
+    end
+```
 
 ### При отклонении заявки
 Если заявка на дружбу будет отклонена Пользователем Б, то статус изменится на REJECTED.
@@ -43,7 +44,7 @@ end
 | --- | --- | --- | --- |
 |Отправить заявку |Пользователь А|Пользователи не в друзьях|В БД создана заявка со статусом PENDING. Пользователь А становится подписчиком Пользователя Б|
 |Принятие заявки|Пользователь Б|Заявка в статусе PENDING|Создается дружба. Статус меняется на ACCEPTED|
-|Отклонение заявки|Пользователь Б|Заявка в статусе PENDING|Статус меняется на REJECTED. Друба не создается, но пользователь А остается подписчиком Пользователя Б|
+|Отклонение заявки|Пользователь Б|Заявка в статусе PENDING|Статус меняется на REJECTED. Дружба не создается, но пользователь А остается подписчиком Пользователя Б|
 
 ### Инварианты
 - нельзя отправить заявку самому себе;
