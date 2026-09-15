@@ -7,33 +7,14 @@
 → Пользователь Б становится подписчиком Пользователя А  
 
 ### Диаграмма последовательности для принятия заявки
-```mermaid
-sequenceDiagram
-    actor User as User
-    participant Controller as FriendRequestController
-    participant Service as FriendRequestService
-    participant Repository as FriendRequestRepository
-    participant DB as DB
-
-    User ->> Controller: принять заявку
-    Controller ->> Service: accept(requestId, userId)
-    Service ->> Repository: findById(requestId)
-    Repository ->> DB: SELECT friend_request
-    DB -->> Repository: заявка
-    Repository -->> Service: FriendRequest
-
-    alt заявка существует и находится в PENDING
-        Service ->> Repository: save(ACCEPTED)
-        Repository ->> DB: UPDATE friend_request
-        DB -->> Repository: результат
-        Repository -->> Service: сохранённая заявка
-        Service -->> Controller: результат операции
-        Controller -->> User: заявка принята
-    else переход запрещён
-        Service -->> Controller: ошибка процесса
-        Controller -->> User: сообщение об ошибке
-    end
-```
+@startuml
+actor UserB
+UserB --> Система : Принять завявку в друзья от UserA
+Система --> Система : Обновить статус заявки на ACCEPTED
+Система --> Система : Создать дружбу между UserA и UserB
+Система --> Система : сделать UserB подписчиком UserA
+Система --> UserB : Уведомление: Вы теперь друзья с User A
+@enduml
 
 ### При отклонении заявки
 Если заявка на дружбу будет отклонена Пользователем Б, то статус изменится на REJECTED.
