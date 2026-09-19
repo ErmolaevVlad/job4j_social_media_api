@@ -1,0 +1,61 @@
+delete:
+  summary: Удалить пользователя из друзей
+  parameters:
+    - name: friendId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      example: 53
+  responses:
+    '204':
+      description: Пользователь успешно удален из друзей
+    '401':
+      description: Пользователь не авторизован
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+              - detail
+              - code
+            properties:
+              title:
+                type: string
+                example: Пользователь не авторизован
+              status:
+                type: integer
+                example: 401
+              detail:
+                type: string
+                example: Пользователь не авторизован
+              code:
+                type: string
+                example: UNAUTHORIZED
+    '404':
+      description: Пользователь не найден в списке друзей
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+              - detail
+              - code
+            properties:
+              title:
+                type: string
+                example: Пользователь не найден
+              status:
+                type: integer
+                example: 404
+              detail:
+                type: string
+                example: Пользователь не найден в списке ваших друзей
+              code:
+                type: string
+                example: FRIEND_NOT_FOUND

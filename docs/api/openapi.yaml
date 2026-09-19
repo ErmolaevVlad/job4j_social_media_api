@@ -1,0 +1,38 @@
+openapi: 3.0.3
+info:
+  title: Social Media API
+  version: 1.0.0
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/friend-requests/accept:
+    $ref: './paths/friend-request/accept.yaml'
+  /api/friend-requests/incoming:
+    $ref: './paths/friend-request/incoming.yaml'
+  /api/friend-requests/outgoing:
+    $ref: './paths/friend-request/outgoing.yaml'
+  /api/friend-requests/reject:
+    $ref: './paths/friend-request/reject.yaml'
+  /api/friend-requests/send:
+    $ref: './paths/friend-request/send.yaml'
+  /api/friends/{friendId}:
+    $ref: './paths/friends/delete.yaml'
+  /api/friends/friends:
+    $ref: './paths/friends/friends.yaml'
+  /api/subscriptions/followers:
+    $ref: './paths/subscriptions/followers.yaml'
+  /api/subscriptions/subscribe/{targetUserId}:
+    $ref: './paths/subscriptions/subscribe.yaml'
+  /api/subscriptions/subscriptions:
+    $ref: './paths/subscriptions/subscriptions.yaml'
+  /api/subscriptions/unsubscribe/{targetUserId}:
+    $ref: './paths/subscriptions/unsubscribe.yaml'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

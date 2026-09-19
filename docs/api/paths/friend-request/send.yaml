@@ -1,0 +1,68 @@
+post:
+  summary: Отправить заявку в друзья
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - targetUserId
+          properties:
+            targetUserId:
+              type: integer
+              format: int64
+              example: 42
+  responses:
+    '201':
+      description: Заявка создана
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - id
+              - senderId
+              - receiverId
+              - status
+            properties:
+              id:
+                type: integer
+                format: int64
+                example: 1001
+              senderId:
+                type: integer
+                format: int64
+                example: 10
+              receiverId:
+                type: integer
+                format: int64
+                example: 42
+              status:
+                type: string
+                enum: [PENDING, ACCEPTED, REJECTED]
+                example: PENDING
+    '409':
+      description: Активная заявка уже существует
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+              - detail
+              - code
+            properties:
+              title:
+                type: string
+                example: Невозможно отправить заявку
+              status:
+                type: integer
+                example: 409
+              detail:
+                type: string
+                example: Активная заявка этому пользователю уже существует
+              code:
+                type: string
+                example: ACTIVE_FRIEND_REQUEST_ALREADY_EXISTS

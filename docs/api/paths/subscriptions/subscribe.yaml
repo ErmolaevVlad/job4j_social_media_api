@@ -1,0 +1,95 @@
+put:
+  summary: Подписаться на пользователя
+  parameters:
+    - name: targetUserId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      example: 42
+  responses:
+    '200':
+      description: Подписка оформлена
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                example: Вы успешно подписались на пользователя
+    '401':
+      description: Пользователь не авторизован
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+              - detail
+              - code
+            properties:
+              title:
+                type: string
+                example: Пользователь не авторизован
+              status:
+                type: integer
+                example: 401
+              detail:
+                type: string
+                example: Пользователь не авторизован
+              code:
+                type: string
+                example: UNAUTHORIZED
+    '404':
+      description: Пользователь не найден в системе
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+              - detail
+              - code
+            properties:
+              title:
+                type: string
+                example: Пользователь не найден
+              status:
+                type: integer
+                example: 404
+              detail:
+                type: string
+                example: Пользователь не найден в системе
+              code:
+                type: string
+                example: USER_NOT_FOUND
+    '409':
+      description: Попытка подписаться на самого себя
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+              - detail
+              - code
+            properties:
+              title:
+                type: string
+                example: Невозможно подписаться
+              status:
+                type: integer
+                example: 409
+              detail:
+                type: string
+                example: Вы не можете подписаться на самого себя
+              code:
+                type: string
+                example: CANNOT_SUBSCRIBE_TO_SELF
