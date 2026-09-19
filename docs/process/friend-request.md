@@ -24,20 +24,20 @@ POST запрос для отправки заявки в друзья
 
 
 ### Возможные ошибки
-Заявка самому себе:  
-HTTP status: 400 Bad Request  
-JSON ответа:  
-{  
-    "error": "INVALID_RECIPIENT",  
-    "message": "Вы не можете отправить заявку в друзья самому себе."  
-}
-
 Пользователь не найден:  
 HTTP status: 404 Not Found  
 JSON ответа:  
 {  
     "error": "USER_NOT_FOUND",  
     "message": "Пользователь не найден."  
+}
+
+Заявка самому себе:  
+HTTP status: 409 Conflict  
+JSON ответа:  
+{  
+"error": "INVALID_RECIPIENT",  
+"message": "Вы не можете отправить заявку в друзья самому себе."  
 }
 
 Активная заявка уже существует:  
