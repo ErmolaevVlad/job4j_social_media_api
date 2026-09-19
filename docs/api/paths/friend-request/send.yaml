@@ -1,5 +1,5 @@
 post:
-  summary: Отправить заявку в друзья
+  summary: РћС‚РїСЂР°РІРёС‚СЊ Р·Р°СЏРІРєСѓ РІ РґСЂСѓР·СЊСЏ
   requestBody:
     required: true
     content:
@@ -15,7 +15,7 @@ post:
               example: 42
   responses:
     '201':
-      description: Заявка создана
+      description: Р—Р°СЏРІРєР° СЃРѕР·РґР°РЅР°
       content:
         application/json:
           schema:
@@ -43,7 +43,7 @@ post:
                 enum: [PENDING, ACCEPTED, REJECTED]
                 example: PENDING
     '409':
-      description: Активная заявка уже существует
+      description: РђРєС‚РёРІРЅР°СЏ Р·Р°СЏРІРєР° СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚
       content:
         application/problem+json:
           schema:
@@ -56,13 +56,13 @@ post:
             properties:
               title:
                 type: string
-                example: Невозможно отправить заявку
+                example: РќРµРІРѕР·РјРѕР¶РЅРѕ РѕС‚РїСЂР°РІРёС‚СЊ Р·Р°СЏРІРєСѓ
               status:
                 type: integer
                 example: 409
               detail:
                 type: string
-                example: Активная заявка этому пользователю уже существует
+                example: РђРєС‚РёРІРЅР°СЏ Р·Р°СЏРІРєР° СЌС‚РѕРјСѓ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚
               code:
                 type: string
                 example: ACTIVE_FRIEND_REQUEST_ALREADY_EXISTS

@@ -1,5 +1,5 @@
 put:
-  summary: Подписаться на пользователя
+  summary: РџРѕРґРїРёСЃР°С‚СЊСЃСЏ РЅР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
   parameters:
     - name: targetUserId
       in: path
@@ -10,7 +10,7 @@ put:
       example: 42
   responses:
     '200':
-      description: Подписка оформлена
+      description: РџРѕРґРїРёСЃРєР° РѕС„РѕСЂРјР»РµРЅР°
       content:
         application/json:
           schema:
@@ -20,9 +20,9 @@ put:
             properties:
               message:
                 type: string
-                example: Вы успешно подписались на пользователя
+                example: Р’С‹ СѓСЃРїРµС€РЅРѕ РїРѕРґРїРёСЃР°Р»РёСЃСЊ РЅР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     '401':
-      description: Пользователь не авторизован
+      description: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ
       content:
         application/problem+json:
           schema:
@@ -35,18 +35,18 @@ put:
             properties:
               title:
                 type: string
-                example: Пользователь не авторизован
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ
               status:
                 type: integer
                 example: 401
               detail:
                 type: string
-                example: Пользователь не авторизован
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ
               code:
                 type: string
                 example: UNAUTHORIZED
     '404':
-      description: Пользователь не найден в системе
+      description: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ РІ СЃРёСЃС‚РµРјРµ
       content:
         application/problem+json:
           schema:
@@ -59,18 +59,18 @@ put:
             properties:
               title:
                 type: string
-                example: Пользователь не найден
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ
               status:
                 type: integer
                 example: 404
               detail:
                 type: string
-                example: Пользователь не найден в системе
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ РІ СЃРёСЃС‚РµРјРµ
               code:
                 type: string
                 example: USER_NOT_FOUND
     '409':
-      description: Попытка подписаться на самого себя
+      description: РџРѕРїС‹С‚РєР° РїРѕРґРїРёСЃР°С‚СЊСЃСЏ РЅР° СЃР°РјРѕРіРѕ СЃРµР±СЏ
       content:
         application/problem+json:
           schema:
@@ -83,13 +83,13 @@ put:
             properties:
               title:
                 type: string
-                example: Невозможно подписаться
+                example: РќРµРІРѕР·РјРѕР¶РЅРѕ РїРѕРґРїРёСЃР°С‚СЊСЃСЏ
               status:
                 type: integer
                 example: 409
               detail:
                 type: string
-                example: Вы не можете подписаться на самого себя
+                example: Р’С‹ РЅРµ РјРѕР¶РµС‚Рµ РїРѕРґРїРёСЃР°С‚СЊСЃСЏ РЅР° СЃР°РјРѕРіРѕ СЃРµР±СЏ
               code:
                 type: string
                 example: CANNOT_SUBSCRIBE_TO_SELF

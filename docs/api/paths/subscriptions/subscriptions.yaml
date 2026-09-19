@@ -1,10 +1,10 @@
 get:
-  summary: Получить список подписок
+  summary: РџРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє РїРѕРґРїРёСЃРѕРє
   parameters:
     - name: page
       in: query
       required: false
-      description: Номер страницы для пагинации
+      description: РќРѕРјРµСЂ СЃС‚СЂР°РЅРёС†С‹ РґР»СЏ РїР°РіРёРЅР°С†РёРё
       schema:
         type: integer
         minimum: 1
@@ -13,7 +13,7 @@ get:
     - name: limit
       in: query
       required: false
-      description: Количество подписок на странице
+      description: РљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕРґРїРёСЃРѕРє РЅР° СЃС‚СЂР°РЅРёС†Рµ
       schema:
         type: integer
         minimum: 1
@@ -22,7 +22,7 @@ get:
       example: 20
   responses:
     '200':
-      description: Список подписок успешно получен
+      description: РЎРїРёСЃРѕРє РїРѕРґРїРёСЃРѕРє СѓСЃРїРµС€РЅРѕ РїРѕР»СѓС‡РµРЅ
       content:
         application/json:
           schema:
@@ -33,7 +33,7 @@ get:
             properties:
               subscriptions:
                 type: array
-                description: Список подписчиков
+                description: РЎРїРёСЃРѕРє РїРѕРґРїРёСЃС‡РёРєРѕРІ
                 items:
                   type: object
                   required:
@@ -54,7 +54,7 @@ get:
                       example: "2026-09-17T10:35:00+07:00"
               meta:
                 type: object
-                description: Данные для пагинации
+                description: Р”Р°РЅРЅС‹Рµ РґР»СЏ РїР°РіРёРЅР°С†РёРё
                 required:
                   - totalItems
                   - totalPages
@@ -73,7 +73,7 @@ get:
                     minimum: 1
                     example: 1
     '401':
-      description: Пользователь не авторизован
+      description: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ
       content:
         application/problem+json:
           schema:
@@ -86,13 +86,13 @@ get:
             properties:
               title:
                 type: string
-                example: Пользователь не авторизован
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ
               status:
                 type: integer
                 example: 401
               detail:
                 type: string
-                example: Пользователь не авторизован
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ
               code:
                 type: string
                 example: UNAUTHORIZED

@@ -1,5 +1,5 @@
 post:
-  summary: Отклонить заявку в друзья
+  summary: РћС‚РєР»РѕРЅРёС‚СЊ Р·Р°СЏРІРєСѓ РІ РґСЂСѓР·СЊСЏ
   requestBody:
     required: true
     content:
@@ -15,7 +15,7 @@ post:
               example: 1001
   responses:
     '200':
-      description: Заявка в друзья отклонена
+      description: Р—Р°СЏРІРєР° РІ РґСЂСѓР·СЊСЏ РѕС‚РєР»РѕРЅРµРЅР°
       content:
         application/json:
           schema:
@@ -43,7 +43,7 @@ post:
                 enum: [PENDING, ACCEPTED, REJECTED]
                 example: REJECTED
     '403':
-      description: Нет прав на обработку заявки
+      description: РќРµС‚ РїСЂР°РІ РЅР° РѕР±СЂР°Р±РѕС‚РєСѓ Р·Р°СЏРІРєРё
       content:
         application/problem+json:
           schema:
@@ -56,18 +56,18 @@ post:
             properties:
               title:
                 type: string
-                example: Недостаточно прав
+                example: РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ
               status:
                 type: integer
                 example: 403
               detail:
                 type: string
-                example: Пользователь не имеет права обработать заявку
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РёРјРµРµС‚ РїСЂР°РІР° РѕР±СЂР°Р±РѕС‚Р°С‚СЊ Р·Р°СЏРІРєСѓ
               code:
                 type: string
                 example: ACCESS_DENIED
     '404':
-      description: Заявка не найдена
+      description: Р—Р°СЏРІРєР° РЅРµ РЅР°Р№РґРµРЅР°
       content:
         application/problem+json:
           schema:
@@ -80,18 +80,18 @@ post:
             properties:
               title:
                 type: string
-                example: Заявка не найдена
+                example: Р—Р°СЏРІРєР° РЅРµ РЅР°Р№РґРµРЅР°
               status:
                 type: integer
                 example: 404
               detail:
                 type: string
-                example: Заявка в друзья с указанным ID не существует
+                example: Р—Р°СЏРІРєР° РІ РґСЂСѓР·СЊСЏ СЃ СѓРєР°Р·Р°РЅРЅС‹Рј ID РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚
               code:
                 type: string
                 example: FRIEND_REQUEST_NOT_FOUND
     '409':
-      description: Заявка в друзья уже была обработана
+      description: Р—Р°СЏРІРєР° РІ РґСЂСѓР·СЊСЏ СѓР¶Рµ Р±С‹Р»Р° РѕР±СЂР°Р±РѕС‚Р°РЅР°
       content:
         application/problem+json:
           schema:
@@ -104,13 +104,13 @@ post:
             properties:
               title:
                 type: string
-                example: Невозможно отклонить заявку
+                example: РќРµРІРѕР·РјРѕР¶РЅРѕ РѕС‚РєР»РѕРЅРёС‚СЊ Р·Р°СЏРІРєСѓ
               status:
                 type: integer
                 example: 409
               detail:
                 type: string
-                example: Заявка в друзья уже была принята или отклонена
+                example: Р—Р°СЏРІРєР° РІ РґСЂСѓР·СЊСЏ СѓР¶Рµ Р±С‹Р»Р° РїСЂРёРЅСЏС‚Р° РёР»Рё РѕС‚РєР»РѕРЅРµРЅР°
               code:
                 type: string
                 example: FRIEND_REQUEST_ALREADY_PROCESSED

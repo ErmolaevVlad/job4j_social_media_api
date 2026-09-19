@@ -1,5 +1,5 @@
 delete:
-  summary: Удалить пользователя из друзей
+  summary: РЈРґР°Р»РёС‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РёР· РґСЂСѓР·РµР№
   parameters:
     - name: friendId
       in: path
@@ -10,9 +10,9 @@ delete:
       example: 53
   responses:
     '204':
-      description: Пользователь успешно удален из друзей
+      description: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓСЃРїРµС€РЅРѕ СѓРґР°Р»РµРЅ РёР· РґСЂСѓР·РµР№
     '401':
-      description: Пользователь не авторизован
+      description: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ
       content:
         application/problem+json:
           schema:
@@ -25,18 +25,18 @@ delete:
             properties:
               title:
                 type: string
-                example: Пользователь не авторизован
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ
               status:
                 type: integer
                 example: 401
               detail:
                 type: string
-                example: Пользователь не авторизован
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ
               code:
                 type: string
                 example: UNAUTHORIZED
     '404':
-      description: Пользователь не найден в списке друзей
+      description: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ РІ СЃРїРёСЃРєРµ РґСЂСѓР·РµР№
       content:
         application/problem+json:
           schema:
@@ -49,13 +49,13 @@ delete:
             properties:
               title:
                 type: string
-                example: Пользователь не найден
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ
               status:
                 type: integer
                 example: 404
               detail:
                 type: string
-                example: Пользователь не найден в списке ваших друзей
+                example: РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ РІ СЃРїРёСЃРєРµ РІР°С€РёС… РґСЂСѓР·РµР№
               code:
                 type: string
                 example: FRIEND_NOT_FOUND
