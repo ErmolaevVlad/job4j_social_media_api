@@ -57,3 +57,6 @@ docker compose ps
 mvnw.cmd test
 mvnw.cmd spring-boot:run
 ```
+
+### API-контракт
+[Ссылка](./docs/api/openapi-single.yaml)
