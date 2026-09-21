@@ -22,19 +22,19 @@ post:
             type: object
             required:
               - id
-              - senderId
-              - receiverId
+              - fromUserId
+              - toUserId
               - status
             properties:
               id:
                 type: integer
                 format: int64
                 example: 1234
-              senderId:
+              fromUserId:
                 type: integer
                 format: int64
                 example: 10
-              receiverId:
+              toUserId:
                 type: integer
                 format: int64
                 example: 42

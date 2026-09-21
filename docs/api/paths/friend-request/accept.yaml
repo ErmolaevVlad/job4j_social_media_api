@@ -22,19 +22,19 @@ post:
             type: object
             required:
               - id
-              - senderId
-              - receiverId
+              - fromUserId
+              - toUserId
               - status
             properties:
               id:
                 type: integer
                 format: int64
                 example: 1001
-              senderId:
+              fromUserId:
                 type: integer
                 format: int64
                 example: 10
-              receiverId:
+              toUserId:
                 type: integer
                 format: int64
                 example: 42
@@ -90,27 +90,5 @@ post:
               code:
                 type: string
                 example: FRIEND_REQUEST_NOT_FOUND
-    '409':
+    '204':
       description: Заявка в друзья уже была обработана
-      content:
-        application/problem+json:
-          schema:
-            type: object
-            required:
-              - title
-              - status
-              - detail
-              - code
-            properties:
-              title:
-                type: string
-                example: Невозможно принять заявку
-              status:
-                type: integer
-                example: 409
-              detail:
-                type: string
-                example: Заявка в друзья уже была принята или отклонена
-              code:
-                type: string
-                example: FRIEND_REQUEST_ALREADY_PROCESSED

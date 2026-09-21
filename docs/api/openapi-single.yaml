@@ -30,19 +30,19 @@ paths:
                 type: object
                 required:
                   - id
-                  - senderId
-                  - receiverId
+                  - fromUserId
+                  - toUserId
                   - status
                 properties:
                   id:
                     type: integer
                     format: int64
                     example: 1001
-                  senderId:
+                  fromUserId:
                     type: integer
                     format: int64
                     example: 10
-                  receiverId:
+                  toUserId:
                     type: integer
                     format: int64
                     example: 42
@@ -53,6 +53,8 @@ paths:
                       - ACCEPTED
                       - REJECTED
                     example: ACCEPTED
+        '204':
+          description: Заявка в друзья уже была обработана
         '403':
           description: Нет прав на обработку заявки
           content:
@@ -101,30 +103,6 @@ paths:
                   code:
                     type: string
                     example: FRIEND_REQUEST_NOT_FOUND
-        '409':
-          description: Заявка в друзья уже была обработана
-          content:
-            application/problem+json:
-              schema:
-                type: object
-                required:
-                  - title
-                  - status
-                  - detail
-                  - code
-                properties:
-                  title:
-                    type: string
-                    example: Невозможно принять заявку
-                  status:
-                    type: integer
-                    example: 409
-                  detail:
-                    type: string
-                    example: Заявка в друзья уже была принята или отклонена
-                  code:
-                    type: string
-                    example: FRIEND_REQUEST_ALREADY_PROCESSED
   /api/friend-requests/incoming:
     get:
       summary: Получить список входящих заявок в друзья
@@ -348,19 +326,19 @@ paths:
                 type: object
                 required:
                   - id
-                  - senderId
-                  - receiverId
+                  - fromUserId
+                  - toUserId
                   - status
                 properties:
                   id:
                     type: integer
                     format: int64
                     example: 1234
-                  senderId:
+                  fromUserId:
                     type: integer
                     format: int64
                     example: 10
-                  receiverId:
+                  toUserId:
                     type: integer
                     format: int64
                     example: 42
@@ -453,9 +431,14 @@ paths:
             schema:
               type: object
               required:
-                - targetUserId
+                - fromUserId
+                - toUserId
               properties:
-                targetUserId:
+                fromUserId:
+                  type: integer
+                  format: int64
+                  example: 10
+                toUserId:
                   type: integer
                   format: int64
                   example: 42
@@ -468,19 +451,19 @@ paths:
                 type: object
                 required:
                   - id
-                  - senderId
-                  - receiverId
+                  - fromUserId
+                  - toUserId
                   - status
                 properties:
                   id:
                     type: integer
                     format: int64
                     example: 1001
-                  senderId:
+                  fromUserId:
                     type: integer
                     format: int64
                     example: 10
-                  receiverId:
+                  toUserId:
                     type: integer
                     format: int64
                     example: 42
@@ -491,8 +474,10 @@ paths:
                       - ACCEPTED
                       - REJECTED
                     example: PENDING
-        '409':
+        '204':
           description: Активная заявка уже существует
+        '409':
+          description: Заявка была отклонена
           content:
             application/problem+json:
               schema:
@@ -505,16 +490,16 @@ paths:
                 properties:
                   title:
                     type: string
-                    example: Невозможно отправить заявку
+                    example: Заявка была отклонена
                   status:
                     type: integer
                     example: 409
                   detail:
                     type: string
-                    example: Активная заявка этому пользователю уже существует
+                    example: Пользователь отклонил заявку
                   code:
                     type: string
-                    example: ACTIVE_FRIEND_REQUEST_ALREADY_EXISTS
+                    example: FRIEND_REQUEST_REJECTED
   /api/friends/{friendId}:
     delete:
       summary: Удалить пользователя из друзей
