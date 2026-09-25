@@ -60,3 +60,11 @@ mvnw.cmd spring-boot:run
 
 ### API-контракт
 [Ссылка](./docs/api/openapi-single.yaml)
+
+### Краткое описание индексов
+idx_offer_friendships_incoming - для получения входящих предложений 
+idx_offer_friendships_outgoing - для получения исходящих предложений
+idx_friendships_first_user - для поиска друзей, у которых ID больше чем у текущего пользователя
+idx_friendships_second_user - для поиска друзей, у которых ID меньше чем у текущего пользователя
+idx_subscriptions_follower - для получения подписок пользователя
+idx_subscriptions_followed - для получения подписчиков пользователя

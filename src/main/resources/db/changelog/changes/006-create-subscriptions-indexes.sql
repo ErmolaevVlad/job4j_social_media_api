@@ -1,0 +1,11 @@
+--liquibase formatted sql
+
+--changeset student:006
+CREATE INDEX idx_subscriptions_follower
+    ON subscriptions (follower_id);
+
+CREATE INDEX idx_subscriptions_followed
+    ON subscriptions (followed_id);
+
+--rollback DROP INDEX idx_subscriptions_follower;
+--rollback DROP INDEX idx_subscriptions_followed;
