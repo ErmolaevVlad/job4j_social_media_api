@@ -10,17 +10,7 @@ delete:
       example: 43
   responses:
     '204':
-      description:  Вы успешно отписались от пользователя
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-              - message
-            properties:
-              message:
-                type: string
-                example: Вы успешно отменили подписку на пользователя
+      description: Вы успешно отписались от пользователя
     '401':
       description: Пользователь не авторизован
       content:

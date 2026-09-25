@@ -42,6 +42,32 @@ post:
                 type: string
                 enum: [PENDING, ACCEPTED, REJECTED]
                 example: ACCEPTED
+    '204':
+      description: Заявка в друзья уже была обработана
+    '400':
+      description: Некорректные входные данные
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+              - detail
+              - code
+            properties:
+              title:
+                type: string
+                example: Ошибка валидации
+              status:
+                type: integer
+                example: 400
+              detail:
+                type: string
+                example: Некорректные входные данные
+              code:
+                type: string
+                example: VALIDATION_ERROR
     '403':
       description: Нет прав на обработку заявки
       content:
@@ -90,5 +116,27 @@ post:
               code:
                 type: string
                 example: FRIEND_REQUEST_NOT_FOUND
-    '204':
-      description: Заявка в друзья уже была обработана
+    '409':
+      description: Заявка была отклонена
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+              - detail
+              - code
+            properties:
+              title:
+                type: string
+                example: Заявка была отклонена
+              status:
+                type: integer
+                example: 409
+              detail:
+                type: string
+                example: Заявка в друзья уже была отклонена
+              code:
+                type: string
+                example: FRIEND_REQUEST_REJECTED

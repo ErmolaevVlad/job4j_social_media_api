@@ -11,6 +11,30 @@ delete:
   responses:
     '204':
       description: Пользователь успешно удален из друзей
+    '400':
+      description: Некорректные входные данные
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+              - detail
+              - code
+            properties:
+              title:
+                type: string
+                example: Ошибка валидации
+              status:
+                type: integer
+                example: 400
+              detail:
+                type: string
+                example: Некорректые входные данные
+              code:
+                type: string
+                example: BAD_REQUEST
     '401':
       description: Пользователь не авторизован
       content:

@@ -55,6 +55,30 @@ paths:
                     example: ACCEPTED
         '204':
           description: Заявка в друзья уже была обработана
+        '400':
+          description: Некорректные входные данные
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required:
+                  - title
+                  - status
+                  - detail
+                  - code
+                properties:
+                  title:
+                    type: string
+                    example: Ошибка валидации
+                  status:
+                    type: integer
+                    example: 400
+                  detail:
+                    type: string
+                    example: Некорректные входные данные
+                  code:
+                    type: string
+                    example: VALIDATION_ERROR
         '403':
           description: Нет прав на обработку заявки
           content:
@@ -103,6 +127,30 @@ paths:
                   code:
                     type: string
                     example: FRIEND_REQUEST_NOT_FOUND
+        '409':
+          description: Заявка была отклонена
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required:
+                  - title
+                  - status
+                  - detail
+                  - code
+                properties:
+                  title:
+                    type: string
+                    example: Заявка была отклонена
+                  status:
+                    type: integer
+                    example: 409
+                  detail:
+                    type: string
+                    example: Заявка в друзья уже была отклонена
+                  code:
+                    type: string
+                    example: FRIEND_REQUEST_REJECTED
   /api/friend-requests/incoming:
     get:
       summary: Получить список входящих заявок в друзья
@@ -178,6 +226,30 @@ paths:
                         type: integer
                         minimum: 1
                         example: 1
+        '400':
+          description: Некорректные входные данные
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required:
+                  - title
+                  - status
+                  - detail
+                  - code
+                properties:
+                  title:
+                    type: string
+                    example: Ошибка валидации
+                  status:
+                    type: integer
+                    example: 400
+                  detail:
+                    type: string
+                    example: Некорректые входные данные
+                  code:
+                    type: string
+                    example: BAD_REQUEST
         '401':
           description: Пользователь не авторизован
           content:
@@ -277,6 +349,30 @@ paths:
                         type: integer
                         minimum: 1
                         example: 1
+        '400':
+          description: Некорректные входные данные
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required:
+                  - title
+                  - status
+                  - detail
+                  - code
+                properties:
+                  title:
+                    type: string
+                    example: Ошибка валидации
+                  status:
+                    type: integer
+                    example: 400
+                  detail:
+                    type: string
+                    example: Некорректые входные данные
+                  code:
+                    type: string
+                    example: BAD_REQUEST
         '401':
           description: Пользователь не авторизован
           content:
@@ -349,6 +445,8 @@ paths:
                       - ACCEPTED
                       - REJECTED
                     example: REJECTED
+        '204':
+          description: Заявка уже была обработана ранее
         '403':
           description: Нет прав на обработку заявки
           content:
@@ -398,7 +496,7 @@ paths:
                     type: string
                     example: FRIEND_REQUEST_NOT_FOUND
         '409':
-          description: Заявка в друзья уже была обработана
+          description: Заявка в друзья уже была принята
           content:
             application/problem+json:
               schema:
@@ -417,10 +515,10 @@ paths:
                     example: 409
                   detail:
                     type: string
-                    example: Заявка в друзья уже была принята или отклонена
+                    example: Заявка в друзья уже была принята ранее
                   code:
                     type: string
-                    example: FRIEND_REQUEST_ALREADY_PROCESSED
+                    example: FRIEND_REQUEST_ALREADY_ACCEPTED
   /api/friend-requests/send:
     post:
       summary: Отправить заявку в друзья
@@ -476,8 +574,8 @@ paths:
                     example: PENDING
         '204':
           description: Активная заявка уже существует
-        '409':
-          description: Заявка была отклонена
+        '404':
+          description: Пользователь не найден
           content:
             application/problem+json:
               schema:
@@ -490,16 +588,51 @@ paths:
                 properties:
                   title:
                     type: string
-                    example: Заявка была отклонена
+                    example: Пользователь не найден
                   status:
                     type: integer
-                    example: 409
+                    example: 404
                   detail:
                     type: string
-                    example: Пользователь отклонил заявку
+                    example: Пользователь не найден
                   code:
                     type: string
-                    example: FRIEND_REQUEST_REJECTED
+                    example: USER_NOT_FOUND
+        '409':
+          description: Заявка отклонена или адресована самому себе
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required:
+                  - title
+                  - status
+                  - detail
+                  - code
+                properties:
+                  title:
+                    type: string
+                  status:
+                    type: integer
+                  detail:
+                    type: string
+                  code:
+                    type: string
+              examples:
+                RequestRejected:
+                  summary: Пользователь уже отклонил заявку ранее
+                  value:
+                    title: Заявка была отклонена
+                    status: 409
+                    detail: Пользователь уже отклонил вашу заявку ранее
+                    code: FRIEND_REQUEST_REJECTED
+                SelfRequest:
+                  summary: Попытка отправить заявку самому себе
+                  value:
+                    title: Ошибка бизнес-логики
+                    status: 409
+                    detail: Нельзя отправить заявку в друзья самому себе
+                    code: CANNOT_SEND_FRIEND_REQUEST_TO_SELF
   /api/friends/{friendId}:
     delete:
       summary: Удалить пользователя из друзей
@@ -514,6 +647,30 @@ paths:
       responses:
         '204':
           description: Пользователь успешно удален из друзей
+        '400':
+          description: Некорректные входные данные
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required:
+                  - title
+                  - status
+                  - detail
+                  - code
+                properties:
+                  title:
+                    type: string
+                    example: Ошибка валидации
+                  status:
+                    type: integer
+                    example: 400
+                  detail:
+                    type: string
+                    example: Некорректые входные данные
+                  code:
+                    type: string
+                    example: BAD_REQUEST
         '401':
           description: Пользователь не авторизован
           content:
@@ -637,6 +794,30 @@ paths:
                         type: integer
                         minimum: 1
                         example: 1
+        '400':
+          description: Некорректные входные данные
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required:
+                  - title
+                  - status
+                  - detail
+                  - code
+                properties:
+                  title:
+                    type: string
+                    example: Ошибка валидации
+                  status:
+                    type: integer
+                    example: 400
+                  detail:
+                    type: string
+                    example: Некорректые входные данные
+                  code:
+                    type: string
+                    example: BAD_REQUEST
         '401':
           description: Пользователь не авторизован
           content:
@@ -736,6 +917,30 @@ paths:
                         type: integer
                         minimum: 1
                         example: 1
+        '400':
+          description: Некорректные входные данные
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required:
+                  - title
+                  - status
+                  - detail
+                  - code
+                properties:
+                  title:
+                    type: string
+                    example: Ошибка валидации
+                  status:
+                    type: integer
+                    example: 400
+                  detail:
+                    type: string
+                    example: Некорректые входные данные
+                  code:
+                    type: string
+                    example: BAD_REQUEST
         '401':
           description: Пользователь не авторизован
           content:
@@ -784,6 +989,8 @@ paths:
                   message:
                     type: string
                     example: Вы успешно подписались на пользователя
+        '204':
+          description: Подписка уже оформлена
         '401':
           description: Пользователь не авторизован
           content:
@@ -931,6 +1138,30 @@ paths:
                         type: integer
                         minimum: 1
                         example: 1
+        '400':
+          description: Некорректные входные данные
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                required:
+                  - title
+                  - status
+                  - detail
+                  - code
+                properties:
+                  title:
+                    type: string
+                    example: Ошибка валидации
+                  status:
+                    type: integer
+                    example: 400
+                  detail:
+                    type: string
+                    example: Некорректные входные данные
+                  code:
+                    type: string
+                    example: BAD_REQUEST
         '401':
           description: Пользователь не авторизован
           content:
@@ -969,16 +1200,6 @@ paths:
       responses:
         '204':
           description: Вы успешно отписались от пользователя
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - message
-                properties:
-                  message:
-                    type: string
-                    example: Вы успешно отменили подписку на пользователя
         '401':
           description: Пользователь не авторизован
           content:

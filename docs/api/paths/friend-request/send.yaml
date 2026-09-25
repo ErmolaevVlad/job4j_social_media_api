@@ -49,8 +49,8 @@ post:
                 example: PENDING
     '204':
       description: Активная заявка уже существует
-    '409':
-      description: Заявка была отклонена
+    '404':
+      description: Пользователь не найден
       content:
         application/problem+json:
           schema:
@@ -63,13 +63,48 @@ post:
             properties:
               title:
                 type: string
-                example: Заявка была отклонена
+                example: Пользователь не найден
               status:
                 type: integer
-                example: 409
+                example: 404
               detail:
                 type: string
-                example: Пользователь отклонил заявку
+                example: Пользователь не найден
               code:
                 type: string
-                example: FRIEND_REQUEST_REJECTED
+                example: USER_NOT_FOUND
+    '409':
+      description: Заявка отклонена или адресована самому себе
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            required:
+              - title
+              - status
+              - detail
+              - code
+            properties:
+              title:
+                type: string
+              status:
+                type: integer
+              detail:
+                type: string
+              code:
+                type: string
+          examples:
+            RequestRejected:
+              summary: Пользователь уже отклонил заявку ранее
+              value:
+                title: Заявка была отклонена
+                status: 409
+                detail: Пользователь уже отклонил вашу заявку ранее
+                code: FRIEND_REQUEST_REJECTED
+            SelfRequest:
+              summary: Попытка отправить заявку самому себе
+              value:
+                title: Ошибка бизнес-логики
+                status: 409
+                detail: Нельзя отправить заявку в друзья самому себе
+                code: CANNOT_SEND_FRIEND_REQUEST_TO_SELF

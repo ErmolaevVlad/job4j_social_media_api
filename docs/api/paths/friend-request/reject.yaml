@@ -42,6 +42,8 @@ post:
                 type: string
                 enum: [PENDING, ACCEPTED, REJECTED]
                 example: REJECTED
+    '204':
+      description: Заявка уже была обработана ранее
     '403':
       description: Нет прав на обработку заявки
       content:
@@ -91,7 +93,7 @@ post:
                 type: string
                 example: FRIEND_REQUEST_NOT_FOUND
     '409':
-      description: Заявка в друзья уже была обработана
+      description: Заявка в друзья уже была принята
       content:
         application/problem+json:
           schema:
@@ -110,7 +112,7 @@ post:
                 example: 409
               detail:
                 type: string
-                example: Заявка в друзья уже была принята или отклонена
+                example: Заявка в друзья уже была принята ранее
               code:
                 type: string
-                example: FRIEND_REQUEST_ALREADY_PROCESSED
+                example: FRIEND_REQUEST_ALREADY_ACCEPTED

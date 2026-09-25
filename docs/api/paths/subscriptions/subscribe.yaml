@@ -21,6 +21,8 @@ put:
               message:
                 type: string
                 example: Вы успешно подписались на пользователя
+    '204':
+      description: Подписка уже оформлена
     '401':
       description: Пользователь не авторизован
       content:
