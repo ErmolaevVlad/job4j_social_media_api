@@ -12,7 +12,7 @@ public interface OfferFriendshipRepository {
             UUID id,
             UUID fromUserId,
             UUID toUserId,
-            String status,
+            FriendshipStatus status,
             Instant createdAt,
             Instant updatedAt
     ) {
@@ -22,7 +22,7 @@ public interface OfferFriendshipRepository {
             UUID id,
             UUID fromUserId,
             UUID toUserId,
-            String status,
+            FriendshipStatus status,
             Instant createdAt,
             Instant updatedAt
     ) {
