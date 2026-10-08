@@ -8,6 +8,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import ru.job4j.socialmediaapi.exception.DomainException;
 import ru.job4j.socialmediaapi.exception.DuplicateFriendshipRequestException;
 import ru.job4j.socialmediaapi.exception.SelfFriendshipException;
 
@@ -30,7 +31,7 @@ class JdbcOfferFriendshipRepositoryTest {
 
     @Test
     @DisplayName("Успех — создание новой заявки на дружбу, если её ещё не существует")
-    void whenCreateOfferFriendshipThenReturnStoredData() {
+    void whenCreateOfferFriendshipThenReturnStoredData() throws DomainException {
         var id = UUID.randomUUID();
         var fromUserId = UUID.randomUUID();
         var toUserId = UUID.randomUUID();
@@ -60,7 +61,7 @@ class JdbcOfferFriendshipRepositoryTest {
 
     @Test
     @DisplayName("Ошибка — создание дубликата заявки между теми же пользователями")
-    void whenCreateDuplicateOfferFriendshipThenThrowException() {
+    void whenCreateDuplicateOfferFriendshipThenThrowException() throws DomainException {
         var fromUserId = UUID.randomUUID();
         var toUserId = UUID.randomUUID();
         var now = Instant.parse("2026-09-22T10:15:00Z");

@@ -1,12 +1,14 @@
 package ru.job4j.socialmediaapi.repository;
 
+import ru.job4j.socialmediaapi.exception.DomainException;
+
 import java.time.Instant;
 import java.util.UUID;
 
 public interface OfferFriendshipRepository {
     CreateOfferFriendshipResponse createOfferFriendship(
             CreateOfferFriendshipRequest request
-    );
+    ) throws DomainException;
 
     record CreateOfferFriendshipRequest(
             UUID id,

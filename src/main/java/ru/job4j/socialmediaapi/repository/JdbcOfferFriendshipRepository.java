@@ -28,7 +28,7 @@ public class JdbcOfferFriendshipRepository implements OfferFriendshipRepository 
     @Override
     public CreateOfferFriendshipResponse createOfferFriendship(
             CreateOfferFriendshipRequest request
-    ) {
+    ) throws DomainException {
         try {
             return jdbcTemplate.queryForObject(
                     CREATE,
@@ -74,5 +74,4 @@ public class JdbcOfferFriendshipRepository implements OfferFriendshipRepository 
         }
         throw ex;
     }
-
 }
