@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Testcontainers
+@Transactional
 @SpringBootTest
 class JdbcOfferFriendshipRepositoryTest {
     @Container
@@ -64,13 +66,14 @@ class JdbcOfferFriendshipRepositoryTest {
     void whenCreateDuplicateOfferFriendshipThenThrowException() throws DomainException {
         var fromUserId = UUID.randomUUID();
         var toUserId = UUID.randomUUID();
+        var status = FriendshipStatus.PENDING;
         var now = Instant.parse("2026-09-22T10:15:00Z");
         repository.createOfferFriendship(request(
-                UUID.randomUUID(), fromUserId, toUserId, "PENDING", now
+                UUID.randomUUID(), fromUserId, toUserId, status, now
         ));
 
         assertThatThrownBy(() -> repository.createOfferFriendship(request(
-                UUID.randomUUID(), fromUserId, toUserId, "PENDING", now
+                UUID.randomUUID(), fromUserId, toUserId, status, now
         ))).isInstanceOf(DuplicateFriendshipRequestException.class);
     }
 
@@ -80,19 +83,87 @@ class JdbcOfferFriendshipRepositoryTest {
         var userId = UUID.randomUUID();
         var now = Instant.parse("2026-09-22T10:15:00Z");
         assertThatThrownBy(() -> repository.createOfferFriendship(request(
-                UUID.randomUUID(), userId, userId, "PENDING", now
+                UUID.randomUUID(), userId, userId, FriendshipStatus.PENDING, now
         ))).isInstanceOf(SelfFriendshipException.class);
+    }
+
+    @Test
+    @DisplayName("Успех — получение списка входящих заявок пользователя")
+    void whenFindIncomingOfferFriendshipsThenReturnUserIncomingRequests() throws DomainException {
+        var myId = UUID.randomUUID();
+        var userId1 = UUID.randomUUID();
+        var userId2 = UUID.randomUUID();
+        var status = FriendshipStatus.PENDING;
+        var now = Instant.parse("2026-09-22T10:15:00Z");
+
+        repository.createOfferFriendship(request(
+                UUID.randomUUID(), userId1, myId, status, now
+        ));
+        repository.createOfferFriendship(request(
+                UUID.randomUUID(), userId2, myId, status, now
+        ));
+        repository.createOfferFriendship(request(
+                UUID.randomUUID(), myId, UUID.randomUUID(), status, now
+        ));
+        var request = new OfferFriendshipRepository.FindOfferFriendshipsRequest(myId);
+        var rsl = repository.findIncomingOfferFriendships(request);
+        assertThat(rsl.offers())
+                .hasSize(2)
+                .extracting("userId")
+                .containsExactlyInAnyOrder(userId1, userId2);
+    }
+
+    @Test
+    @DisplayName("Успех — получение списка исходящих заявок пользователя")
+    void whenFindOutgoingOfferFriendshipsThenReturnUserOutgoingRequests() throws DomainException {
+        var myId = UUID.randomUUID();
+        var userId1 = UUID.randomUUID();
+        var userId2 = UUID.randomUUID();
+        var status = FriendshipStatus.PENDING;
+        var now = Instant.parse("2026-09-22T10:15:00Z");
+
+        repository.createOfferFriendship(request(
+                UUID.randomUUID(), myId, userId1, status, now
+        ));
+        repository.createOfferFriendship(request(
+                UUID.randomUUID(), myId, userId2, status, now
+        ));
+        repository.createOfferFriendship(request(
+                UUID.randomUUID(), UUID.randomUUID(), myId, status, now
+        ));
+
+        var request = new OfferFriendshipRepository.FindOfferFriendshipsRequest(myId);
+        var result = repository.findOutgoingOfferFriendships(request);
+
+        assertThat(result).isNotNull();
+        assertThat(result.offers())
+                .hasSize(2)
+                .extracting("userId")
+                .containsExactlyInAnyOrder(userId1, userId2);
+    }
+
+    @Test
+    @DisplayName("Успех — если у пользователя нет заявок, возвращаются пустые списки")
+    void whenUserHasNoRequestsThenReturnEmptyLists() throws DomainException {
+        var userId = UUID.randomUUID();
+        var request = new OfferFriendshipRepository.FindOfferFriendshipsRequest(userId);
+
+        var incomingResult = repository.findIncomingOfferFriendships(request);
+        var outgoingResult = repository.findOutgoingOfferFriendships(request);
+
+        assertThat(incomingResult.offers()).isEmpty();
+        assertThat(outgoingResult.offers()).isEmpty();
     }
 
     private OfferFriendshipRepository.CreateOfferFriendshipRequest request(
             UUID id,
             UUID fromUserId,
             UUID toUserId,
-            String status,
+            FriendshipStatus status,
             Instant now
     ) {
         return new OfferFriendshipRepository.CreateOfferFriendshipRequest(
-                id, fromUserId, toUserId, FriendshipStatus.valueOf(status), now, now
+                id, fromUserId, toUserId, status, now, now
         );
     }
 }

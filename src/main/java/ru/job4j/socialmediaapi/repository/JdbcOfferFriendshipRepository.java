@@ -3,9 +3,7 @@ package ru.job4j.socialmediaapi.repository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.job4j.socialmediaapi.exception.DomainException;
-import ru.job4j.socialmediaapi.exception.DuplicateFriendshipRequestException;
-import ru.job4j.socialmediaapi.exception.SelfFriendshipException;
+import ru.job4j.socialmediaapi.exception.*;
 
 @Repository
 public class JdbcOfferFriendshipRepository implements OfferFriendshipRepository {
@@ -17,6 +15,21 @@ public class JdbcOfferFriendshipRepository implements OfferFriendshipRepository 
             VALUES (?, ?, ?, ?, ?, ?)
             RETURNING id, from_user_id, to_user_id,
                       status, created_at, updated_at
+            """;
+
+    private static final String SELECT_OFFER_INCOMING = """
+            SELECT from_user_id,
+                   created_at
+            FROM offer_friendships
+            WHERE to_user_id = ? and status = 'PENDING'
+            ORDER BY created_at DESC, id DESC
+            """;
+    private static final String SELECT_OFFER_OUTGOING = """
+            SELECT to_user_id,
+                   created_at
+            FROM offer_friendships
+            WHERE from_user_id = ? AND status = 'PENDING'
+            ORDER BY created_at DESC, id DESC
             """;
 
     private final JdbcTemplate jdbcTemplate;
@@ -52,6 +65,44 @@ public class JdbcOfferFriendshipRepository implements OfferFriendshipRepository 
         }
     }
 
+    @Override
+    public FindIncomingOfferFriendshipsResponse findIncomingOfferFriendships(FindOfferFriendshipsRequest request)
+            throws DomainException {
+        try {
+            return new FindIncomingOfferFriendshipsResponse(
+                    jdbcTemplate.query(
+                            SELECT_OFFER_INCOMING,
+                            (resultSet, rowNum) -> new OfferInfo(
+                                    resultSet.getObject("from_user_id", java.util.UUID.class),
+                                    resultSet.getTimestamp("created_at").toInstant()
+                            ),
+                            request.userId()
+                    )
+            );
+        } catch (org.springframework.dao.DataAccessException ex) {
+            throw new DatabaseReadException("Failed to fetch incoming friendship offers for user: " + request.userId(), ex);
+        }
+    }
+
+    @Override
+    public FindOutgoingOfferFriendshipsResponse findOutgoingOfferFriendships(FindOfferFriendshipsRequest request)
+            throws DomainException {
+        try {
+            return new FindOutgoingOfferFriendshipsResponse(
+                    jdbcTemplate.query(
+                            SELECT_OFFER_OUTGOING,
+                            (resultSet, rowNum) -> new OfferInfo(
+                                    resultSet.getObject("to_user_id", java.util.UUID.class),
+                                    resultSet.getTimestamp("created_at").toInstant()
+                            ),
+                            request.userId()
+                    )
+            );
+        } catch (org.springframework.dao.DataAccessException ex) {
+            throw new DatabaseReadException("Failed to fetch outgoing friendship offers for user " + request.userId(), ex);
+        }
+    }
+
     private DomainException handleDataIntegrityViolationException(
             DataIntegrityViolationException ex,
             CreateOfferFriendshipRequest request
@@ -72,6 +123,6 @@ public class JdbcOfferFriendshipRepository implements OfferFriendshipRepository 
                 }
             }
         }
-        throw ex;
+        return new DatabaseWriteException("Unexpected data integrity violation during offer friendship creation", ex);
     }
 }
