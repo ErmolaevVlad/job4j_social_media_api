@@ -35,6 +35,11 @@ public class JdbcSubscriptionRepository implements SubscriptionRepository {
             ORDER BY created_at DESC, id DESC
             """;
 
+    private static final String DELETE = """
+            DELETE FROM subscriptions
+            WHERE follower_id = ? AND followed_id = ?
+            """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public JdbcSubscriptionRepository(JdbcTemplate jdbcTemplate) {
@@ -114,6 +119,28 @@ public class JdbcSubscriptionRepository implements SubscriptionRepository {
             );
         } catch (org.springframework.dao.DataAccessException ex) {
             throw new DatabaseReadException("Failed to fetch subscriptions for user: " + request.userId(), ex);
+        }
+    }
+
+    @Override
+    public void deleteSubscription(DeleteSubscriptionRequest request) throws DomainException {
+        try {
+            int rowsAffected = jdbcTemplate.update(
+                    DELETE,
+                    request.follower_id(),
+                    request.followed_id()
+            );
+
+            if (rowsAffected == 0) {
+                throw new SubscriptionNotFoundException(
+                        "Subscription not found: user " + request.follower_id()
+                                + " is not subscribed to " + request.followed_id()
+                );
+            }
+        } catch (org.springframework.dao.DataAccessException ex) {
+            throw new DatabaseWriteException(
+                    "Failed to delete subscription for follower: " + request.follower_id(), ex
+            );
         }
     }
 }

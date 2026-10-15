@@ -14,6 +14,8 @@ public interface SubscriptionRepository {
 
     CreateFollowerResponse createFollower(CreateFollowerRequest requestCreate) throws DomainException;
 
+    void deleteSubscription(DeleteSubscriptionRequest requestDelete) throws DomainException;
+
     record CreateFollowerRequest(
             UUID id,
             UUID followed_id,
@@ -48,6 +50,12 @@ public interface SubscriptionRepository {
 
     record FindSubscriptionsResponse(
             List<UserInfo> subscriptions
+    ) {
+    }
+
+    record DeleteSubscriptionRequest(
+            UUID follower_id,
+            UUID followed_id
     ) {
     }
 }
