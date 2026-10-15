@@ -1,8 +1,11 @@
 package ru.job4j.socialmediaapi.exception;
 
 public class DatabaseReadException extends DomainException {
-    public DatabaseReadException(String message, Throwable cause) {
+    public DatabaseReadException(String message) {
         super(message);
-        initCause(cause);
+    }
+
+    public DatabaseReadException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

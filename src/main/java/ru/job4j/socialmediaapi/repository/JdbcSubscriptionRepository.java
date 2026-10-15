@@ -1,5 +1,6 @@
 package ru.job4j.socialmediaapi.repository;
 
+import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -58,7 +59,24 @@ public class JdbcSubscriptionRepository implements SubscriptionRepository {
                     java.sql.Timestamp.from(requestCreate.createdAt())
             );
         } catch (DataIntegrityViolationException ex) {
-            throw handleSubscriptionDataIntegrityException(ex, requestCreate);
+            if (ex.getMostSpecificCause() instanceof PSQLException pgException) {
+                var serverError = pgException.getServerErrorMessage();
+                if (serverError != null) {
+                    var constraint = serverError.getConstraint();
+                    if ("uq_follower_followed".equals(constraint)) {
+                        throw new DuplicateSubscriptionException(
+                                "User " + requestCreate.follower_id()
+                                        + " is already subscribed to "
+                                        + requestCreate.followed_id());
+                    }
+                    if ("chk_not_self_subscriptions".equals(constraint)) {
+                        throw new SelfSubscriptionException(
+                                "User " + requestCreate.follower_id() + " cannot send a friendship offer to themselves"
+                        );
+                    }
+                }
+            }
+            throw new DatabaseWriteException("Unexpected data integrity violation during subscription creation", ex);
         }
     }
 
@@ -97,28 +115,5 @@ public class JdbcSubscriptionRepository implements SubscriptionRepository {
         } catch (org.springframework.dao.DataAccessException ex) {
             throw new DatabaseReadException("Failed to fetch subscriptions for user: " + request.userId(), ex);
         }
-    }
-
-    private DomainException handleSubscriptionDataIntegrityException(
-            DataIntegrityViolationException ex,
-            CreateFollowerRequest  request
-    ) {
-        if (ex.getCause() instanceof java.sql.SQLException sqlException) {
-            String message = sqlException.getMessage();
-
-            if (message != null) {
-                if (message.contains("uq_follower_followed")) {
-                    return new DuplicateSubscriptionException(
-                            "User " + request.follower_id() + " is already subscribed to " + request.followed_id()
-                    );
-                }
-                if (message.contains("chk_not_self_subscriptions")) {
-                    return new SelfSubscriptionException(
-                            "User " + request.follower_id() + " cannot send a friendship offer to themselves"
-                    );
-                }
-            }
-        }
-        return new DatabaseWriteException("Unexpected data integrity violation during subscription creation", ex);
     }
 }

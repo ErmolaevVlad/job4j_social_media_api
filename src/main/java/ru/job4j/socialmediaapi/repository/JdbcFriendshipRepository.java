@@ -1,5 +1,6 @@
 package ru.job4j.socialmediaapi.repository;
 
+import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -55,7 +56,21 @@ public class JdbcFriendshipRepository implements FriendshipRepository {
                     java.sql.Timestamp.from(requestCreate.createdAt())
             );
         } catch (DataIntegrityViolationException ex) {
-            throw handleFriendshipDataIntegrityException(ex);
+            if (ex.getMostSpecificCause() instanceof PSQLException pgException) {
+                var serverError = pgException.getServerErrorMessage();
+                if (serverError != null) {
+                    var constraint = serverError.getConstraint();
+                    if ("chk_canonical_order".equals(constraint)) {
+                        throw new DatabaseWriteException(
+                                "Critical data ordering constraint violated. Check service sorting layer.", ex);
+                    }
+                    if ("uq_friendships_pair".equals(constraint)) {
+                        throw new DuplicateFriendshipRequestException(
+                                "Friendship already exists between these users", ex);
+                    }
+                }
+            }
+            throw new DatabaseWriteException("Unexpected data integrity violation during friendship creation", ex);
         }
     }
 
@@ -77,27 +92,5 @@ public class JdbcFriendshipRepository implements FriendshipRepository {
         } catch (org.springframework.dao.DataAccessException ex) {
             throw new DatabaseReadException("Failed to fetch subscriptions for user: " + request.userId(), ex);
         }
-    }
-
-    private DomainException handleFriendshipDataIntegrityException(
-            DataIntegrityViolationException ex
-    ) {
-        if (ex.getCause() instanceof java.sql.SQLException sqlException) {
-            String message = sqlException.getMessage();
-
-            if (message != null) {
-                if (message.contains("chk_canonical_order")) {
-                    return new DatabaseWriteException(
-                            "Critical data ordering constraint violated. Check service sorting layer."
-                    );
-                }
-                if (message.contains("uq_friendships_pair")) {
-                    return new DuplicateFriendshipRequestException(
-                            "Friendship already exists between these users"
-                    );
-                }
-            }
-        }
-        return new DatabaseWriteException("Unexpected data integrity violation during friendship creation", ex);
     }
 }

@@ -1,5 +1,6 @@
 package ru.job4j.socialmediaapi.repository;
 
+import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -61,7 +62,19 @@ public class JdbcOfferFriendshipRepository implements OfferFriendshipRepository 
                     java.sql.Timestamp.from(request.updatedAt())
             );
         } catch (DataIntegrityViolationException ex) {
-            throw handleDataIntegrityViolationException(ex, request);
+            if (ex.getMostSpecificCause() instanceof PSQLException pgException) {
+                var serverError = pgException.getServerErrorMessage();
+                if (serverError != null) {
+                    var constraint = serverError.getConstraint();
+                    if ("chk_offer_friendships_different_users".equals(constraint)) {
+                        throw new SelfFriendshipException("Cannot create friendship with yourself", ex);
+                    }
+                    if ("uq_offer_friendships_users".equals(constraint)) {
+                        throw new DuplicateFriendshipRequestException("Friendship offer already exists", ex);
+                    }
+                }
+            }
+            throw new DatabaseWriteException("Unexpected data integrity violation during offer friendship creation", ex);
         }
     }
 
@@ -101,28 +114,5 @@ public class JdbcOfferFriendshipRepository implements OfferFriendshipRepository 
         } catch (org.springframework.dao.DataAccessException ex) {
             throw new DatabaseReadException("Failed to fetch outgoing friendship offers for user " + request.userId(), ex);
         }
-    }
-
-    private DomainException handleDataIntegrityViolationException(
-            DataIntegrityViolationException ex,
-            CreateOfferFriendshipRequest request
-    ) {
-        if (ex.getCause() instanceof java.sql.SQLException sqlException) {
-            String message = sqlException.getMessage();
-
-            if (message != null) {
-                if (message.contains("uq_offer_friendships_users")) {
-                    return new DuplicateFriendshipRequestException(
-                            "Friendship offer already exists between " + request.fromUserId() + " and " + request.toUserId()
-                    );
-                }
-                if (message.contains("chk_offer_friendships_different_users")) {
-                    return new SelfFriendshipException(
-                            "User " + request.fromUserId() + " cannot send a friendship offer to themselves"
-                    );
-                }
-            }
-        }
-        return new DatabaseWriteException("Unexpected data integrity violation during offer friendship creation", ex);
     }
 }
