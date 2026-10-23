@@ -1,22 +1,32 @@
+## Описание контракта API предложения дружбы
+
+POST /api/offer-friendships/create
+POST /api/offer-friendships/accept
+POST /api/offer-friendships/reject
+GET /api/offer-friendships/incoming
+GET /api/offer-friendships/outgoing
+
+
+## Создание запроса на дружбу 
 endpoint:
-POST /api/friend-requests
+POST /api/offer-friendships/create
 Content-Type: application/json
 
-POST запрос для отправки заявки в друзья
+### POST запрос для отправки заявки в друзья
 
 ### JSON запроса
 {  
-    "senderId" : "userA"  
-    "receiverId" : "userB"  
+"fromUserId" : "1",  
+"toUserId" : "7"  
 }
 
 ### JSON успешного ответа
 {  
-    "id": "fr_1",  
-    "senderId": "userA",  
-    "receiverId": "userB",
-    "status": "PENDING",  
-    "createdAt": "2026-09-15T10:25:00+07:00"  
+"id": "123",  
+"fromUserId": "1",  
+"toUserId": "7",
+"status": "PENDING",  
+"createdAt": "2026-09-15T10:25:00+07:00"  
 }
 
 ### HTTP status успешного ответа
@@ -28,8 +38,8 @@ POST запрос для отправки заявки в друзья
 HTTP status: 404 Not Found  
 JSON ответа:  
 {  
-    "error": "USER_NOT_FOUND",  
-    "message": "Пользователь не найден."  
+"error": "USER_NOT_FOUND",  
+"message": "Пользователь не найден."  
 }
 
 Заявка самому себе:  
@@ -43,8 +53,8 @@ JSON ответа:
 Активная заявка уже существует:  
 HTTP status: 409 Conflict  
 {  
-    "error": "REQUEST_ALREADY_EXIST",  
-    "message": "Активная заявка уже существует."  
+"error": "REQUEST_ALREADY_EXIST",  
+"message": "Активная заявка уже существует."  
 }
 
 ### Описание поведения при повторной отправке того же запроса

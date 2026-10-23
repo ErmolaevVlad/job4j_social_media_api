@@ -5,9 +5,9 @@ put:
       in: path
       required: true
       schema:
-        type: integer
-        format: int64
-      example: 42
+        type: string
+        format: uuid
+      example: "22222222-2222-2222-2222-222222222222"
   responses:
     '200':
       description: Подписка оформлена

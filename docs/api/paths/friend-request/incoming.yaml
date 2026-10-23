@@ -42,9 +42,9 @@ get:
                     - createdAt
                   properties:
                     id:
-                      type: integer
-                      format: int64
-                      example: 10
+                      type: string
+                      format: uuid
+                      example: "88888888-8888-8888-8888-888888888888"
                     username:
                       type: string
                       example: Ivan

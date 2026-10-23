@@ -1,10 +1,10 @@
 ### State diagram заявки
-@startuml
-[*] --> PENDING : Отправить запрос в друзья
-PENDING --> ACCEPTED : Принять запрос на добавление в друзья
-PENDING --> REJECTED : Отклонить запрос на добавлние в друзья
-ACCEPTED --> [*]
-REJECTED --> [*]
+@startuml  
+[*] --> PENDING : Отправить запрос в друзья    
+PENDING --> ACCEPTED : Принять запрос на добавление в друзья  
+PENDING --> REJECTED : Отклонить запрос на добавлние в друзья  
+ACCEPTED --> [*]  
+REJECTED --> [*]  
 @enduml
 
 
@@ -17,8 +17,8 @@ REJECTED --> [*]
 |REJECTED| - | - | - | \ |
 
 ### Результаты команд
-SendFriendRequest - Инициатор подписывается на получателя. Формируется заявка со статусом PENDING.
-AcceptFriendRequest - Создается дружба и обратная подписка. Статус заявки становится ACCEPTED.
+SendFriendRequest - Инициатор подписывается на получателя. Формируется заявка со статусом PENDING.  
+AcceptFriendRequest - Создается дружба и обратная подписка. Статус заявки становится ACCEPTED.  
 RejectFriendRequest - Подписка инициатора сохраняетсяю Статус заявки становится REJECTED.
 
 ### Ошибки переходов
@@ -33,14 +33,14 @@ throw new IllegalArgumentException("SELF_FRIEND_REQUEST_NOT_ALLOWED");
 После ACCEPTED новая заявка не нужна, пока пользователи остаются друзьями.
 
 ### Диаграмма состояний публикации
-@startuml
-[*] --> DRAFT : создание
-DRAFT --> PUBLISHED : публикация
-DRAFT --> CLOSED : удаление черновика
-PUBLISHED --> BANNED : блокировка
-PUBLISHED --> CLOSED : архивация
-BANNED --> PUBLISHED : разблокировка
-BANNED --> CLOSED : архивация
-state CLOSED : терминальное состояние
-CLOSED --> [*]
+@startuml  
+[*] --> DRAFT : создание  
+DRAFT --> PUBLISHED : публикация  
+DRAFT --> CLOSED : удаление черновика  
+PUBLISHED --> BANNED : блокировка  
+PUBLISHED --> CLOSED : архивация  
+BANNED --> PUBLISHED : разблокировка  
+BANNED --> CLOSED : архивация  
+state CLOSED : терминальное состояние  
+CLOSED --> [*]  
 @enduml

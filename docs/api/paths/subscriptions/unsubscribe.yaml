@@ -5,9 +5,9 @@ delete:
       in: path
       required: true
       schema:
-        type: integer
-        format: int64
-      example: 43
+        type: string
+        format: uuid
+      example: "555555555-5555-5555-5555-555555555555"
   responses:
     '204':
       description: Вы успешно отписались от пользователя

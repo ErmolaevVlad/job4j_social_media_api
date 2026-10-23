@@ -16,7 +16,7 @@ paths:
   /api/friend-requests/reject:
     $ref: './paths/friend-request/reject.yaml'
   /api/friend-requests/send:
-    $ref: './paths/friend-request/send.yaml'
+    $ref: './paths/friend-request/create.yaml'
   /api/friends/{friendId}:
     $ref: './paths/friends/delete.yaml'
   /api/friends/friends:

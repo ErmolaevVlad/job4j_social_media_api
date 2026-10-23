@@ -5,9 +5,9 @@ delete:
       in: path
       required: true
       schema:
-        type: integer
-        format: int64
-      example: 53
+        type: string
+        format: uuid
+      example: "99999999-9999-9999-99999-999999999999"
   responses:
     '204':
       description: Пользователь успешно удален из друзей

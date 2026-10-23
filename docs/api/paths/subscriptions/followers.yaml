@@ -42,9 +42,9 @@ get:
                     - followedAt
                   properties:
                     id:
-                      type: integer
-                      format: int64
-                      example: 10
+                      type: string
+                      format: uuid
+                      example: "99999999-9999-9999-99999-999999999999"
                     username:
                       type: string
                       example: Ivan
