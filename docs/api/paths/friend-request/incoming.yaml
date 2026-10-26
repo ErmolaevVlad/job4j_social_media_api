@@ -1,4 +1,7 @@
 get:
+  tags:
+    - Offer-friendship
+  operationId: findIncomingOfferFriendships
   summary: Получить список входящих заявок в друзья
   parameters:
     - name: page
@@ -26,6 +29,7 @@ get:
       content:
         application/json:
           schema:
+            title: findIncomingOfferFriendshipsResponse
             type: object
             required:
               - requests

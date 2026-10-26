@@ -1,4 +1,7 @@
 delete:
+  tags:
+    - Friendships
+  operationId: deleteFriend
   summary: Удалить пользователя из друзей
   parameters:
     - name: friendId

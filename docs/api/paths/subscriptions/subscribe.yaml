@@ -1,4 +1,7 @@
 put:
+  tags:
+    - Subscriptions
+  operationId: createFollower
   summary: Подписаться на пользователя
   parameters:
     - name: targetUserId
@@ -14,6 +17,7 @@ put:
       content:
         application/json:
           schema:
+            title: createFollowerResponse
             type: object
             required:
               - message

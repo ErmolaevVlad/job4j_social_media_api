@@ -1,4 +1,7 @@
 get:
+  tags:
+    - Friendships
+  operationId: findFriendships
   summary: Получить список друзей
   parameters:
     - name: page
@@ -26,6 +29,7 @@ get:
       content:
         application/json:
           schema:
+            title: findFriendshipsResponse
             type: object
             required:
               - friends

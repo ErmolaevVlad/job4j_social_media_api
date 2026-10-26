@@ -1,10 +1,14 @@
 post:
+  tags:
+    - Offer-friendship
+  operationId: acceptOfferFriendship
   summary: Принять заявку в друзья
   requestBody:
     required: true
     content:
       application/json:
         schema:
+          title: acceptOfferFriendshipRequest
           type: object
           required:
             - requestId
@@ -12,13 +16,14 @@ post:
             requestId:
               type: string
               format: uuid
-              example: "99999999-9999-9999-9999-9999999999999"
+              example: "99999999-9999-9999-9999-999999999999"
   responses:
     '200':
       description: Заявка в друзья принята
       content:
         application/json:
           schema:
+            title: acceptOfferFriendshipResponse
             type: object
             required:
               - id
@@ -29,7 +34,7 @@ post:
               id:
                 type: string
                 format: uuid
-                example: "99999999-9999-9999-9999-9999999999999"
+                example: "99999999-9999-9999-9999-999999999999"
               fromUserId:
                 type: string
                 format: uuid

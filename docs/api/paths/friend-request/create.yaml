@@ -1,10 +1,14 @@
 post:
-  summary: Отправить заявку в друзья
+  tags:
+    - Offer-friendship
+  operationId: createOfferFriendship
+  summary: Создать заявку в друзья
   requestBody:
     required: true
     content:
       application/json:
         schema:
+          title: CreateOfferFriendshipRequest
           type: object
           required:
             - fromUserId
@@ -24,6 +28,7 @@ post:
       content:
         application/json:
           schema:
+            title: CreateOfferFriendshipResponse
             type: object
             required:
               - id

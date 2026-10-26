@@ -1,4 +1,7 @@
 get:
+  tags:
+    - Subscriptions
+  operationId: findSubscriptions
   summary: Получить список подписок
   parameters:
     - name: page
@@ -26,6 +29,7 @@ get:
       content:
         application/json:
           schema:
+            title: findSubscriptionsResponse
             type: object
             required:
               - subscriptions

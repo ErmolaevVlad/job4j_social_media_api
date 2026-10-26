@@ -1,4 +1,7 @@
 get:
+  tags:
+    - Subscriptions
+  operationId: findFollowers
   summary: Получить список подписчиков
   parameters:
     - name: page
@@ -26,6 +29,7 @@ get:
       content:
         application/json:
           schema:
+            title: findFollowersResponse
             type: object
             required:
               - followers

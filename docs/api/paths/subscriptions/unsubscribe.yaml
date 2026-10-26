@@ -1,4 +1,7 @@
 delete:
+  tags:
+    - Subscriptions
+  operationId: deleteSubscription
   summary: Отписаться от пользователя
   parameters:
     - name: targetUserId
