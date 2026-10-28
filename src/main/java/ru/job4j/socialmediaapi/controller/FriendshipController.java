@@ -30,7 +30,7 @@ public class FriendshipController implements OfferFriendshipApi {
     }
 
     @Override
-    public ResponseEntity<RejectOfferFriendshipsResponse> acceptOfferFriendship(
+    public ResponseEntity<RejectOfferFriendshipsResponse> rejectOfferFriendships(
             RejectOfferFriendshipsRequest request) throws DomainException {
         var result = friendshipService.rejectOfferFriendship(request);
         return ResponseEntity.ok(result);
