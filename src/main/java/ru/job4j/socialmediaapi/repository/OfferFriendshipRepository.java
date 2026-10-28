@@ -19,8 +19,11 @@ public interface OfferFriendshipRepository {
             FindOfferFriendshipsRequest request
     ) throws DomainException;
 
+    FindByIdResponse findById(FindByIdRequest request) throws DomainException;
+
+    boolean updateStatusOfferFriendship(UUID id, FriendshipStatus status) throws DomainException;
+
     record CreateOfferFriendshipRequest(
-            UUID id,
             UUID fromUserId,
             UUID toUserId,
             FriendshipStatus status,
@@ -57,6 +60,19 @@ public interface OfferFriendshipRepository {
     record OfferInfo(
             UUID userId,
             Instant createdAt
+    ) {
+    }
+
+    record FindByIdRequest(
+            UUID OfferFriendshipId
+    ) {
+    }
+
+    record FindByIdResponse(
+            UUID OfferFriendshipId,
+            UUID fromUserId,
+            UUID toUserId,
+            FriendshipStatus status
     ) {
     }
 }

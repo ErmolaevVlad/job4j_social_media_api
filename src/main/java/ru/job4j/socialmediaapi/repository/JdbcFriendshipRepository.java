@@ -6,6 +6,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.job4j.socialmediaapi.exception.*;
 
+import java.util.UUID;
+
 @Repository
 public class JdbcFriendshipRepository implements FriendshipRepository {
 
@@ -39,6 +41,7 @@ public class JdbcFriendshipRepository implements FriendshipRepository {
     @Override
     public CreateFriendshipResponse createFriendship(CreateFriendshipRequest requestCreate)
             throws DomainException {
+        UUID friendshipId = UUID.randomUUID();
         try {
             return jdbcTemplate.queryForObject(
                     CREATE,
@@ -49,7 +52,7 @@ public class JdbcFriendshipRepository implements FriendshipRepository {
                             resultSet.getObject("offer_friendship_id", java.util.UUID.class),
                             resultSet.getTimestamp("created_at").toInstant()
                     ),
-                    requestCreate.id(),
+                    friendshipId,
                     requestCreate.firstUserId(),
                     requestCreate.secondUserId(),
                     requestCreate.offerFriendshipId(),

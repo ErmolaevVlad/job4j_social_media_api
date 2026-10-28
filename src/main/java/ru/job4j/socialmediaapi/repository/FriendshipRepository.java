@@ -14,7 +14,6 @@ public interface FriendshipRepository {
     FindFriendshipsResponse findFriendships(FindFriendshipsRequest request) throws DomainException;
 
     record CreateFriendshipRequest(
-            UUID id,
             UUID firstUserId,
             UUID secondUserId,
             UUID offerFriendshipId,

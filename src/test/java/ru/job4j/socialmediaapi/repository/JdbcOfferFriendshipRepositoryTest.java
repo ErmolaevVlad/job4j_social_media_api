@@ -11,6 +11,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.job4j.socialmediaapi.exception.DomainException;
 import ru.job4j.socialmediaapi.exception.DuplicateFriendshipRequestException;
+import ru.job4j.socialmediaapi.exception.OfferFriendshipNotFoundException;
 import ru.job4j.socialmediaapi.exception.SelfFriendshipException;
 
 import java.time.Instant;
@@ -34,12 +35,10 @@ class JdbcOfferFriendshipRepositoryTest {
     @Test
     @DisplayName("Успех — создание новой заявки на дружбу, если её ещё не существует")
     void whenCreateOfferFriendshipThenReturnStoredData() throws DomainException {
-        var id = UUID.randomUUID();
         var fromUserId = UUID.randomUUID();
         var toUserId = UUID.randomUUID();
         var now = Instant.parse("2026-09-22T10:15:00Z");
         var request = new OfferFriendshipRepository.CreateOfferFriendshipRequest(
-                id,
                 fromUserId,
                 toUserId,
                 FriendshipStatus.PENDING,
@@ -49,16 +48,12 @@ class JdbcOfferFriendshipRepositoryTest {
 
         var result = repository.createOfferFriendship(request);
 
-        var expected = new OfferFriendshipRepository
-                .CreateOfferFriendshipResponse(
-                id,
-                fromUserId,
-                toUserId,
-                FriendshipStatus.PENDING,
-                now,
-                now
-        );
-        assertThat(result).isEqualTo(expected);
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isNotNull();
+        assertThat(result)
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .isEqualTo(request);
     }
 
     @Test
@@ -69,11 +64,11 @@ class JdbcOfferFriendshipRepositoryTest {
         var status = FriendshipStatus.PENDING;
         var now = Instant.parse("2026-09-22T10:15:00Z");
         repository.createOfferFriendship(request(
-                UUID.randomUUID(), fromUserId, toUserId, status, now
+                fromUserId, toUserId, status, now
         ));
 
         assertThatThrownBy(() -> repository.createOfferFriendship(request(
-                UUID.randomUUID(), fromUserId, toUserId, status, now
+               fromUserId, toUserId, status, now
         ))).isInstanceOf(DuplicateFriendshipRequestException.class);
     }
 
@@ -83,7 +78,7 @@ class JdbcOfferFriendshipRepositoryTest {
         var userId = UUID.randomUUID();
         var now = Instant.parse("2026-09-22T10:15:00Z");
         assertThatThrownBy(() -> repository.createOfferFriendship(request(
-                UUID.randomUUID(), userId, userId, FriendshipStatus.PENDING, now
+                userId, userId, FriendshipStatus.PENDING, now
         ))).isInstanceOf(SelfFriendshipException.class);
     }
 
@@ -97,13 +92,13 @@ class JdbcOfferFriendshipRepositoryTest {
         var now = Instant.parse("2026-09-22T10:15:00Z");
 
         repository.createOfferFriendship(request(
-                UUID.randomUUID(), userId1, myId, status, now
+                userId1, myId, status, now
         ));
         repository.createOfferFriendship(request(
-                UUID.randomUUID(), userId2, myId, status, now
+                userId2, myId, status, now
         ));
         repository.createOfferFriendship(request(
-                UUID.randomUUID(), myId, UUID.randomUUID(), status, now
+                myId, UUID.randomUUID(), status, now
         ));
         var request = new OfferFriendshipRepository.FindOfferFriendshipsRequest(myId);
         var rsl = repository.findIncomingOfferFriendships(request);
@@ -123,13 +118,13 @@ class JdbcOfferFriendshipRepositoryTest {
         var now = Instant.parse("2026-09-22T10:15:00Z");
 
         repository.createOfferFriendship(request(
-                UUID.randomUUID(), myId, userId1, status, now
+                myId, userId1, status, now
         ));
         repository.createOfferFriendship(request(
-                UUID.randomUUID(), myId, userId2, status, now
+                myId, userId2, status, now
         ));
         repository.createOfferFriendship(request(
-                UUID.randomUUID(), UUID.randomUUID(), myId, status, now
+                UUID.randomUUID(), myId, status, now
         ));
 
         var request = new OfferFriendshipRepository.FindOfferFriendshipsRequest(myId);
@@ -155,15 +150,52 @@ class JdbcOfferFriendshipRepositoryTest {
         assertThat(outgoingResult.offers()).isEmpty();
     }
 
+    @Test
+    @DisplayName("Успех — поиск заявки по существующему ID")
+    void whenFindByIdExistingThenReturnCorrectData() throws DomainException {
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
+        var now = Instant.parse("2026-09-22T10:15:00Z");
+
+        var response = repository.createOfferFriendship(request(
+                fromUserId, toUserId, FriendshipStatus.PENDING, now
+        ));
+
+        var request = new OfferFriendshipRepository.FindByIdRequest(response.id());
+        var result = repository.findById(request);
+
+        assertThat(result).isNotNull();
+        assertThat(result.OfferFriendshipId()).isEqualTo(response.id());
+        assertThat(result.fromUserId()).isEqualTo(fromUserId);
+        assertThat(result.toUserId()).isEqualTo(toUserId);
+    }
+
+    @Test
+    @DisplayName("Ошибка — поиск заявки по несуществующему ID должен выбросить OfferFriendshipNotFoundException")
+    void whenFindByIdNonExistingThenThrowDatabaseReadException() {
+        var nonExistingId = UUID.randomUUID();
+        var request = new OfferFriendshipRepository.FindByIdRequest(nonExistingId);
+        assertThatThrownBy(() -> repository.findById(request))
+                .isInstanceOf(OfferFriendshipNotFoundException.class)
+                .hasMessageContaining("Friendship request not found with ID: " + nonExistingId);
+    }
+
+    @Test
+    @DisplayName("Успех — попытка обновить статус для несуществующего ID должна вернуть false")
+    void whenUpdateStatusNonExistingThenReturnFalse() throws DomainException {
+        var nonExistingId = UUID.randomUUID();
+        boolean isUpdated = repository.updateStatusOfferFriendship(nonExistingId, FriendshipStatus.ACCEPTED);
+        assertThat(isUpdated).isFalse();
+    }
+
     private OfferFriendshipRepository.CreateOfferFriendshipRequest request(
-            UUID id,
             UUID fromUserId,
             UUID toUserId,
             FriendshipStatus status,
             Instant now
     ) {
         return new OfferFriendshipRepository.CreateOfferFriendshipRequest(
-                id, fromUserId, toUserId, status, now, now
+                fromUserId, toUserId, status, now, now
         );
     }
 }

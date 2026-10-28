@@ -39,58 +39,56 @@ class JdbcFriendshipRepositoryTest {
     private static final Instant FIXED_NOW = Instant.parse("2026-09-22T10:15:00Z");
 
     @Test
-    @DisplayName("Успех - создание дружбы")
+    @DisplayName("Успех - создание дружбы с автогенерацией UUID")
     void whenCreateFriendshipThenReturnStoredData() throws DomainException {
-        var offerFriendshipsId = UUID.randomUUID();
-        var friendshipId = UUID.randomUUID();
-        createOffer(offerFriendshipsId, USER_1, USER_2);
+        var offerResponse = createOffer(USER_1, USER_2);
 
         var friendshipRequest = new FriendshipRepository.CreateFriendshipRequest(
-                friendshipId,
                 USER_1,
                 USER_2,
-                offerFriendshipsId,
+                offerResponse.id(),
                 FIXED_NOW
         );
+
         var rsl = friendshipRepository.createFriendship(friendshipRequest);
-        var excepted = new FriendshipRepository.CreateFriendshipResponse(
-                friendshipId,
-                USER_1,
-                USER_2,
-                offerFriendshipsId,
-                FIXED_NOW
-        );
-        assertThat(rsl).isEqualTo(excepted);
+
+        assertThat(rsl).isNotNull();
+        assertThat(rsl.id()).isNotNull();
+
+        assertThat(rsl)
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .isEqualTo(friendshipRequest);
     }
 
     @Test
     @DisplayName("Успех - вернуть список друзей")
     void whenFindFriendshipThenReturnFriends() throws DomainException {
-        var offerFriendshipsId = UUID.randomUUID();
-        var friendshipId = UUID.randomUUID();
-        createFriendshipPair(friendshipId, offerFriendshipsId, USER_1, USER_2);
+        createFriendshipPair(USER_1, USER_2);
 
         var rsl = friendshipRepository.findFriendships(
                 new FriendshipRepository.FindFriendshipsRequest(USER_1)
         );
+
         var expected = new FriendshipRepository.FindFriendshipsResponse(
-                List.of(new FriendshipRepository.FriendshipInfo(USER_2, FIXED_NOW)));
+                List.of(new FriendshipRepository.FriendshipInfo(USER_2, FIXED_NOW))
+        );
+
         assertThat(rsl).isEqualTo(expected);
     }
 
     @Test
     @DisplayName("Должен выбросить исключение при нарушении chk_canonical_order (first_user_id >= second_user_id)")
     void shouldThrowExceptionWhenCanonicalOrderIsViolated() throws DomainException {
-        var offerFriendshipsId = UUID.randomUUID();
-        var friendshipId = UUID.randomUUID();
-        createOffer(offerFriendshipsId, USER_2, USER_1);
+        var offerResponse = createOffer(USER_2, USER_1);
+
         var friendshipRequest = new FriendshipRepository.CreateFriendshipRequest(
-                friendshipId,
                 USER_2,
                 USER_1,
-                offerFriendshipsId,
+                offerResponse.id(),
                 FIXED_NOW
         );
+
         assertThatThrownBy(() -> friendshipRepository.createFriendship(friendshipRequest))
                 .isInstanceOf(DatabaseWriteException.class);
     }
@@ -98,33 +96,37 @@ class JdbcFriendshipRepositoryTest {
     @Test
     @DisplayName("Должен выбросить DuplicateFriendshipRequestException при попытке повторно добавить тех же пользователей")
     void shouldThrowDuplicateFriendshipExceptionWhenPairAlreadyExists() throws DomainException {
-        var firstOfferFriendshipsId = UUID.randomUUID();
-        var friendshipId = UUID.randomUUID();
-        var secondFriendshipId = UUID.randomUUID();
-        createFriendshipPair(friendshipId, firstOfferFriendshipsId, USER_1, USER_2);
+
+        var createOfferResponse = createOffer(USER_1, USER_2);
+
+        var firstFriendshipRequest = new FriendshipRepository.CreateFriendshipRequest(
+                USER_1, USER_2, createOfferResponse.id(), FIXED_NOW
+        );
+        friendshipRepository.createFriendship(firstFriendshipRequest);
+        UUID secondOfferFriendshipId = UUID.randomUUID();
 
         var secondFriendshipRequest = new FriendshipRepository.CreateFriendshipRequest(
-                secondFriendshipId,
                 USER_1,
                 USER_2,
-                firstOfferFriendshipsId,
+                secondOfferFriendshipId,
                 FIXED_NOW
         );
+
         assertThatThrownBy(() -> friendshipRepository.createFriendship(secondFriendshipRequest))
                 .isInstanceOf(DuplicateFriendshipRequestException.class);
     }
 
-    private void createOffer(UUID offerId, UUID fromUser, UUID toUser) throws DomainException {
+    private OfferFriendshipRepository.CreateOfferFriendshipResponse createOffer(UUID fromUser, UUID toUser) throws DomainException {
         var offerRequest = new OfferFriendshipRepository.CreateOfferFriendshipRequest(
-                offerId, fromUser, toUser, FriendshipStatus.PENDING, FIXED_NOW, FIXED_NOW
+                fromUser, toUser, FriendshipStatus.PENDING, FIXED_NOW, FIXED_NOW
         );
-        offerFriendshipRepository.createOfferFriendship(offerRequest);
+        return offerFriendshipRepository.createOfferFriendship(offerRequest);
     }
 
-    private void createFriendshipPair(UUID friendshipId, UUID offerId, UUID fromUser, UUID toUser) throws DomainException {
-        createOffer(offerId, fromUser, toUser);
+    private void createFriendshipPair(UUID fromUser, UUID toUser) throws DomainException {
+        var createOfferResponse = createOffer(fromUser, toUser);
         var friendshipRequest = new FriendshipRepository.CreateFriendshipRequest(
-                friendshipId, fromUser, toUser, offerId, FIXED_NOW
+                fromUser, toUser, createOfferResponse.id(), FIXED_NOW
         );
         friendshipRepository.createFriendship(friendshipRequest);
     }
