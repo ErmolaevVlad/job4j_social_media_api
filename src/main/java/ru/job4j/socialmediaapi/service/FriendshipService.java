@@ -23,7 +23,8 @@ public class FriendshipService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public CreateOfferFriendshipResponse createOfferFriendship(CreateOfferFriendshipRequest apiRequest) throws DomainException {
+    public OfferFriendshipRepository.CreateOfferFriendshipResponse createOfferFriendship(CreateOfferFriendshipRequest apiRequest)
+            throws DomainException {
 
         OfferFriendshipRepository.CreateOfferFriendshipRequest createOfferFriendshipRequest =
                 new OfferFriendshipRepository.CreateOfferFriendshipRequest(
@@ -34,14 +35,7 @@ public class FriendshipService {
                     Instant.now()
         );
 
-        OfferFriendshipRepository.CreateOfferFriendshipResponse responseService =
-                offerFriendshipRepository.createOfferFriendship(createOfferFriendshipRequest);
-
-        return new CreateOfferFriendshipResponse(
-                responseService.id(),
-                responseService.fromUserId(),
-                responseService.toUserId(),
-                CreateOfferFriendshipResponse.StatusEnum.valueOf(responseService.status().name()));
+        return offerFriendshipRepository.createOfferFriendship(createOfferFriendshipRequest);
     }
 
     @Transactional(rollbackFor = Exception.class)
