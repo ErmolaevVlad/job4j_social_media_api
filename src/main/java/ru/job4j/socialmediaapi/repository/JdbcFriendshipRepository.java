@@ -17,6 +17,7 @@ public class JdbcFriendshipRepository implements FriendshipRepository {
                 offer_friendship_id, created_at
             )
             VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT (first_user_id, second_user_id) DO NOTHING
             RETURNING id, first_user_id, second_user_id,
                       offer_friendship_id, created_at
             """;
@@ -32,6 +33,10 @@ public class JdbcFriendshipRepository implements FriendshipRepository {
         ORDER BY created_at DESC, id DESC
         """;
 
+    private static final String DELETE_FRIENDSHIP = """
+            DELETE FROM friendships WHERE first_user_id = ? and second_user_id = ?
+            """;
+
     private final JdbcTemplate jdbcTemplate;
 
     public JdbcFriendshipRepository(JdbcTemplate jdbcTemplate) {
@@ -43,7 +48,7 @@ public class JdbcFriendshipRepository implements FriendshipRepository {
             throws DomainException {
         UUID friendshipId = UUID.randomUUID();
         try {
-            return jdbcTemplate.queryForObject(
+            var result = jdbcTemplate.query(
                     CREATE,
                     (resultSet, rowNum) -> new CreateFriendshipResponse(
                             resultSet.getObject("id", java.util.UUID.class),
@@ -58,19 +63,18 @@ public class JdbcFriendshipRepository implements FriendshipRepository {
                     requestCreate.offerFriendshipId(),
                     java.sql.Timestamp.from(requestCreate.createdAt())
             );
+
+            if (result.isEmpty()) {
+                throw new DuplicateFriendshipException("Friendship already exists between these users");
+            }
+
+            return result.getFirst();
         } catch (DataIntegrityViolationException ex) {
             if (ex.getMostSpecificCause() instanceof PSQLException pgException) {
                 var serverError = pgException.getServerErrorMessage();
-                if (serverError != null) {
-                    var constraint = serverError.getConstraint();
-                    if ("chk_canonical_order".equals(constraint)) {
-                        throw new DatabaseWriteException(
-                                "Critical data ordering constraint violated. Check service sorting layer.", ex);
-                    }
-                    if ("uq_friendships_pair".equals(constraint)) {
-                        throw new DuplicateFriendshipRequestException(
-                                "Friendship already exists between these users", ex);
-                    }
+                if (serverError != null && "chk_canonical_order".equals(serverError.getConstraint())) {
+                    throw new DatabaseWriteException(
+                            "Critical data ordering constraint violated. Check service sorting layer.", ex);
                 }
             }
             throw new DatabaseWriteException("Unexpected data integrity violation during friendship creation", ex);
@@ -94,6 +98,18 @@ public class JdbcFriendshipRepository implements FriendshipRepository {
             );
         } catch (org.springframework.dao.DataAccessException ex) {
             throw new DatabaseReadException("Failed to fetch subscriptions for user: " + request.userId(), ex);
+        }
+    }
+
+    @Override
+    public void deleteFriendship(DeleteFriendshipRequest request) throws DomainException {
+        boolean isFirstSmaller = request.firstUserId().toString()
+                .compareTo(request.secondUserId().toString()) < 0;
+        UUID firstUserId = isFirstSmaller ? request.firstUserId() : request.secondUserId();
+        UUID secondUserId = isFirstSmaller ? request.secondUserId() : request.firstUserId();
+        int rowsAffected = jdbcTemplate.update(DELETE_FRIENDSHIP, firstUserId, secondUserId);
+        if (rowsAffected != 1) {
+            throw new FriendNotFoundException("User not found in the friends list");
         }
     }
 }

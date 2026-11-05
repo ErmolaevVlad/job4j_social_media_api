@@ -18,16 +18,16 @@ public interface SubscriptionRepository {
 
     record CreateFollowerRequest(
             UUID id,
-            UUID followed_id,
             UUID follower_id,
+            UUID followed_id,
             Instant createdAt
     ) {
     }
 
     record CreateFollowerResponse(
             UUID id,
-            UUID followed_id,
             UUID follower_id,
+            UUID followed_id,
             Instant createdAt
     ) {
     }

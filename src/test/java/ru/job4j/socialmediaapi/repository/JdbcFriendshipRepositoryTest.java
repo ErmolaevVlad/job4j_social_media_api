@@ -9,9 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.job4j.socialmediaapi.exception.DatabaseWriteException;
-import ru.job4j.socialmediaapi.exception.DomainException;
-import ru.job4j.socialmediaapi.exception.DuplicateFriendshipRequestException;
+import ru.job4j.socialmediaapi.exception.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -94,7 +92,7 @@ class JdbcFriendshipRepositoryTest {
     }
 
     @Test
-    @DisplayName("Должен выбросить DuplicateFriendshipRequestException при попытке повторно добавить тех же пользователей")
+    @DisplayName("Должен выбросить DuplicateFriendshipException при попытке повторно добавить тех же пользователей")
     void shouldThrowDuplicateFriendshipExceptionWhenPairAlreadyExists() throws DomainException {
 
         var createOfferResponse = createOffer(USER_1, USER_2);
@@ -113,7 +111,7 @@ class JdbcFriendshipRepositoryTest {
         );
 
         assertThatThrownBy(() -> friendshipRepository.createFriendship(secondFriendshipRequest))
-                .isInstanceOf(DuplicateFriendshipRequestException.class);
+                .isInstanceOf(DuplicateFriendshipException.class);
     }
 
     private OfferFriendshipRepository.CreateOfferFriendshipResponse createOffer(UUID fromUser, UUID toUser) throws DomainException {

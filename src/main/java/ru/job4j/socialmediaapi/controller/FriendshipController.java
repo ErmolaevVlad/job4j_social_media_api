@@ -1,42 +1,55 @@
 package ru.job4j.socialmediaapi.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import ru.job4j.socialmediaapi.controller.api.OfferFriendshipApi;
-import ru.job4j.socialmediaapi.controller.dto.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import ru.job4j.socialmediaapi.controller.api.FriendshipsApi;
+import ru.job4j.socialmediaapi.controller.dto.FindFriendshipsResponse;
 import ru.job4j.socialmediaapi.exception.DomainException;
 import ru.job4j.socialmediaapi.service.FriendshipService;
 
+import java.util.UUID;
+
 @RestController
-public class FriendshipController implements OfferFriendshipApi {
+public class FriendshipController implements FriendshipsApi {
     private final FriendshipService friendshipService;
-    private final OfferFriendshipPresenter offerFriendshipPresenter;
+    private final FriendshipPresenter friendshipPresenter;
 
-    public FriendshipController(FriendshipService friendshipService, OfferFriendshipPresenter offerFriendshipPresenter) {
+    public FriendshipController(FriendshipService friendshipService, FriendshipPresenter friendshipPresenter) {
         this.friendshipService = friendshipService;
-        this.offerFriendshipPresenter = offerFriendshipPresenter;
+        this.friendshipPresenter = friendshipPresenter;
     }
 
     @Override
-    public ResponseEntity<CreateOfferFriendshipResponse> createOfferFriendship(
-            CreateOfferFriendshipRequest request) throws DomainException {
-        var result = friendshipService.createOfferFriendship(request);
-        var response = offerFriendshipPresenter.present(result);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<FindFriendshipsResponse> findFriendships(
+            Integer page,
+            Integer limit) throws DomainException {
+
+        var servletRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+                .getRequest();
+        String userIdHeader = servletRequest.getHeader("X-User-Id");
+        if (userIdHeader == null || userIdHeader.isBlank()) {
+            throw new IllegalArgumentException("Missing X-User-Id header");
+        }
+        UUID userId = UUID.fromString(userIdHeader);
+        var result = friendshipService.findFriendships(userId);
+        var response = friendshipPresenter.findFriendshipResponsePresent(page, limit, result);
+        return ResponseEntity.ok(response);
     }
 
     @Override
-    public ResponseEntity<AcceptOfferFriendshipResponse> acceptOfferFriendship(
-            AcceptOfferFriendshipRequest request) throws DomainException {
-        var result = friendshipService.acceptOfferFriendship(request);
-        return ResponseEntity.ok(result);
-    }
+    public ResponseEntity<Void> deleteFriend(@PathVariable("friendId") UUID secondUserId) throws DomainException {
 
-    @Override
-    public ResponseEntity<RejectOfferFriendshipsResponse> rejectOfferFriendships(
-            RejectOfferFriendshipsRequest request) throws DomainException {
-        var result = friendshipService.rejectOfferFriendship(request);
-        return ResponseEntity.ok(result);
+        var servletRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+                .getRequest();
+        String userIdHeader = servletRequest.getHeader("X-User-Id");
+        if (userIdHeader == null || userIdHeader.isBlank()) {
+            throw new IllegalArgumentException("Missing X-User-Id header");
+        }
+        UUID firstUserId = UUID.fromString(userIdHeader);
+        friendshipService.deleteFriendship(firstUserId, secondUserId);
+        return ResponseEntity.noContent().build();
     }
 }

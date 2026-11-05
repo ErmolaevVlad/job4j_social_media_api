@@ -13,6 +13,8 @@ public interface FriendshipRepository {
 
     FindFriendshipsResponse findFriendships(FindFriendshipsRequest request) throws DomainException;
 
+    void deleteFriendship(DeleteFriendshipRequest request) throws DomainException;
+
     record CreateFriendshipRequest(
             UUID firstUserId,
             UUID secondUserId,
@@ -37,6 +39,12 @@ public interface FriendshipRepository {
 
     record FindFriendshipsResponse(
             List<FriendshipInfo> friendships
+    ) {
+    }
+
+    record DeleteFriendshipRequest(
+            UUID firstUserId,
+            UUID secondUserId
     ) {
     }
 

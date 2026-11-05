@@ -11,11 +11,11 @@ public class JdbcSubscriptionRepository implements SubscriptionRepository {
 
     private static final String CREATE = """
             INSERT INTO subscriptions (
-                id, followed_id, follower_id,
+                id, follower_id, followed_id,
                 created_at
             )
             VALUES (?, ?, ?, ?)
-            RETURNING id, followed_id, follower_id,
+            RETURNING id, follower_id, followed_id,
                       created_at
             """;
 
@@ -76,7 +76,7 @@ public class JdbcSubscriptionRepository implements SubscriptionRepository {
                     }
                     if ("chk_not_self_subscriptions".equals(constraint)) {
                         throw new SelfSubscriptionException(
-                                "User " + requestCreate.follower_id() + " cannot send a friendship offer to themselves"
+                                "User " + requestCreate.follower_id() + " cannot subscribe to themselves"
                         );
                     }
                 }
