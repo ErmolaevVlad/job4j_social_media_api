@@ -10,7 +10,6 @@ import ru.job4j.socialmediaapi.controller.api.SubscriptionsApi;
 import ru.job4j.socialmediaapi.controller.dto.CreateFollowerResponse;
 import ru.job4j.socialmediaapi.controller.dto.FindFollowersResponse;
 import ru.job4j.socialmediaapi.controller.dto.FindSubscriptionsResponse;
-import ru.job4j.socialmediaapi.exception.DomainException;
 import ru.job4j.socialmediaapi.service.SubscriptionService;
 
 import java.util.UUID;
@@ -26,7 +25,7 @@ public class SubscriptionController implements SubscriptionsApi {
     }
 
     @Override
-    public ResponseEntity<CreateFollowerResponse> createFollower(@PathVariable("targetUserId") UUID targetUserId) throws DomainException {
+    public ResponseEntity<CreateFollowerResponse> createFollower(@PathVariable("targetUserId") UUID targetUserId) {
 
         var servletRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
                 .getRequest();
@@ -41,14 +40,14 @@ public class SubscriptionController implements SubscriptionsApi {
     }
 
     @Override
-    public ResponseEntity<Void> deleteSubscription(@PathVariable("targetUserId") UUID targetUserId) throws DomainException {
+    public ResponseEntity<Void> deleteSubscription(@PathVariable("targetUserId") UUID targetUserId) {
         UUID follower = extractUserId();
         subscriptionService.deleteSubscription(follower, targetUserId);
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity<FindFollowersResponse> findFollowers(Integer page, Integer limit) throws DomainException {
+    public ResponseEntity<FindFollowersResponse> findFollowers(Integer page, Integer limit) {
         UUID userId = extractUserId();
         var result = subscriptionService.findFollowers(userId);
         var response = subscriptionPresenter.findFollowersResponse(result, page, limit);
@@ -56,7 +55,7 @@ public class SubscriptionController implements SubscriptionsApi {
     }
 
     @Override
-    public ResponseEntity<FindSubscriptionsResponse> findSubscriptions(Integer page, Integer limit) throws DomainException {
+    public ResponseEntity<FindSubscriptionsResponse> findSubscriptions(Integer page, Integer limit) {
         UUID userId = extractUserId();
         var result = subscriptionService.findSubscriptions(userId);
         var response = subscriptionPresenter.findSubscriptionsResponse(result, page, limit);

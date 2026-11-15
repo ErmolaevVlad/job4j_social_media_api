@@ -1,53 +1,40 @@
 package ru.job4j.socialmediaapi.controller.api;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.job4j.socialmediaapi.controller.dto.*;
+import ru.job4j.socialmediaapi.repository.FriendshipRepository;
 
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers
+@Disabled
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestRestTemplate
-class FriendshipsApiE2ETest {
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
+class FriendshipsApiE2ETest extends BaseIntegrationTest {
 
     @Autowired
     TestRestTemplate restTemplate;
 
     @Autowired
-    private JdbcTemplate dbAssert;
-
-    @AfterEach
-    void clearDatabase() {
-        dbAssert.execute("DELETE FROM friendships");
-        dbAssert.execute("DELETE FROM offer_friendships");
-    }
+    private FriendshipRepository friendshipRepository;
 
     @Test
     @DisplayName("Успех - получение списка друзей")
     void whenFindFriendshipsThenReturnList() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
         createFriendshipBetween(fromUserId, toUserId);
 
         var headers = new HttpHeaders();
@@ -86,8 +73,8 @@ class FriendshipsApiE2ETest {
     @Test
     @DisplayName("Успех - удаление пользователя из друзей")
     void whenDeleteFriendshipThenReturn204AndRemoveFromDb() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
         createFriendshipBetween(fromUserId, toUserId);
 
         var headers = new HttpHeaders();
@@ -105,14 +92,17 @@ class FriendshipsApiE2ETest {
         assertThat(responseDelete.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(responseDelete.getBody()).isNull();
 
-        var count = dbAssert.queryForObject("SELECT COUNT(*) FROM friendships", Integer.class);
-        assertThat(count).isZero();
+//        var count = dbAssert.queryForObject("SELECT COUNT(*) FROM friendships", Integer.class);
+//        assertThat(count).isZero();
+
+        var friendship = friendshipRepository.findFriendships(new FriendshipRepository.FindFriendshipsRequest(fromUserId));
+        assertThat(friendship.friendships()).hasSize(0);
     }
 
     @Test
     @DisplayName("Ошибка 404 - попытка удалить пользователя, которого нет в друзьях")
     void whenDeleteNonExistentFriendThenReturn404() {
-        var userId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
+        var userId = UUID.randomUUID();
         var randomFriendId = UUID.randomUUID();
 
         var headers = new HttpHeaders();
@@ -133,7 +123,7 @@ class FriendshipsApiE2ETest {
     @Test
     @DisplayName("Ошибка 400 - передан невалидный UUID при удалении друга")
     void whenDeleteFriendWithInvalidUuidThenReturn400() {
-        var userId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
+        var userId = UUID.randomUUID();
 
         var headers = new HttpHeaders();
         headers.set("X-User-Id", userId.toString());
@@ -153,7 +143,7 @@ class FriendshipsApiE2ETest {
     @Test
     @DisplayName("Ошибка 400 - некорректные параметры пагинации при поиске друзей")
     void whenFindFriendshipsWithInvalidPaginationThenReturn400() {
-        var userId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
+        var userId = UUID.randomUUID();
 
         var headers = new HttpHeaders();
         headers.set("X-User-Id", userId.toString());

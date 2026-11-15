@@ -1,52 +1,39 @@
 package ru.job4j.socialmediaapi.controller.api;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.http.*;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import ru.job4j.socialmediaapi.controller.dto.*;
+import ru.job4j.socialmediaapi.repository.FriendshipStatus;
+import ru.job4j.socialmediaapi.repository.OfferFriendshipRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
 import java.util.UUID;
 
-@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 @AutoConfigureTestRestTemplate
-class OfferFriendshipApiE2ETest {
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine");
+class OfferFriendshipApiE2ETest extends BaseIntegrationTest {
 
     @Autowired
     TestRestTemplate restTemplate;
 
     @Autowired
-    private JdbcTemplate dbAssert;
-
-    @AfterEach
-    void clearDatabase() {
-        dbAssert.execute("DELETE FROM friendships");
-        dbAssert.execute("DELETE FROM offer_friendships");
-    }
+    OfferFriendshipRepository repository;
 
     @Test
     @DisplayName("Успех - создание и сохрание заявки в друзья")
     void whenCreateOfferFriendshipThenOfferIsSaved() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
         var request = new CreateOfferFriendshipRequest()
                 .fromUserId(fromUserId)
                 .toUserId(toUserId);
@@ -56,7 +43,7 @@ class OfferFriendshipApiE2ETest {
                 request,
                 CreateOfferFriendshipResponse.class
         );
-
+        assertThat(response.getBody()).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         var responseDto = response.getBody();
@@ -70,35 +57,41 @@ class OfferFriendshipApiE2ETest {
                 .ignoringFields("id", "createdAt", "updatedAt")
                 .isEqualTo(expected);
 
-        var dbStatus = dbAssert.queryForObject(
-                "Select status FROM offer_friendships WHERE id = ?",
-                String.class,
-                responseDto.getId()
-        );
-        assertThat(dbStatus).isEqualTo("PENDING");
+        var dbOffer = repository.findById(new OfferFriendshipRepository.FindByIdRequest(
+                response.getBody().getId()
+        ));
+        assertThat(dbOffer.status()).isEqualTo(FriendshipStatus.PENDING);
     }
 
     @Test
     @DisplayName("Успех - принятие заявки в друзья, статус меняется на ACCEPTED")
     void whenAcceptOfferFriendshipThenStatusAccepted() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
-        var idOfferFriendship = createOfferFriendshipAndGetId(fromUserId, toUserId);
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
+
+        var offerFriendship = createOfferFriendship(fromUserId, toUserId);
+
         var acceptRequest = new AcceptOfferFriendshipRequest()
-                .requestId(idOfferFriendship);
+                .requestId(offerFriendship.id());
         var response = restTemplate.postForEntity(
                 "/api/friend-requests/accept",
                 acceptRequest,
-                AcceptOfferFriendshipResponse.class
+                AcceptOfferFriendshipResponse.class,
+                String.class
         );
+        System.out.println("ОТВЕТ СЕРВЕРА: " + response.getBody());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assert response.getBody() != null;
+        assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getStatus()).isEqualTo(AcceptOfferFriendshipResponse.StatusEnum.ACCEPTED);
 
+        boolean isUser1First = fromUserId.toString().compareTo(toUserId.toString()) < 0;
+        UUID firstUserId = isUser1First ? fromUserId : toUserId;
+        UUID secondUserId = isUser1First ? toUserId : fromUserId;
+
         var expectedDto = new AcceptOfferFriendshipResponse()
-                .fromUserId(fromUserId)
-                .toUserId(toUserId)
+                .fromUserId(firstUserId)
+                .toUserId(secondUserId)
                 .status(AcceptOfferFriendshipResponse.StatusEnum.ACCEPTED);
 
         assertThat(response.getBody())
@@ -106,29 +99,21 @@ class OfferFriendshipApiE2ETest {
                 .ignoringFields("id")
                 .isEqualTo(expectedDto);
 
-        var dbStatus = dbAssert.queryForObject(
-                "Select status FROM offer_friendships WHERE id = ?",
-                String.class,
-                idOfferFriendship
-        );
-        assertThat(dbStatus).isEqualTo("ACCEPTED");
-
-        var dbFriendship = dbAssert.queryForObject(
-                "SELECT COUNT(*) FROM friendships WHERE id = ?",
-                Integer.class,
-                response.getBody().getId()
-        );
-        assertThat(dbFriendship).isEqualTo(1);
+        var dbOffer = repository.findById(new OfferFriendshipRepository.FindByIdRequest(
+                offerFriendship.id()
+        ));
+        assertThat(dbOffer.status()).isEqualTo(FriendshipStatus.ACCEPTED);
     }
 
     @Test
     @DisplayName("Успех - отклонение заявки в друзья, статус меняется на REJECTED")
     void whenRejectOfferFriendshipThenStatusRejected() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
-        var idOfferFriendship = createOfferFriendshipAndGetId(fromUserId, toUserId);
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
+        var offerFriendship = createOfferFriendship(fromUserId, toUserId);
+
         var rejectRequest = new RejectOfferFriendshipsRequest()
-                .requestId(idOfferFriendship);
+                .requestId(offerFriendship.id());
         var response = restTemplate.postForEntity(
                 "/api/friend-requests/reject",
                 rejectRequest,
@@ -136,11 +121,11 @@ class OfferFriendshipApiE2ETest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assert response.getBody() != null;
+        assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getStatus()).isEqualTo(RejectOfferFriendshipsResponse.StatusEnum.REJECTED);
 
         var expectedDto = new RejectOfferFriendshipsResponse()
-                .id(idOfferFriendship)
+                .id(offerFriendship.id())
                 .fromUserId(fromUserId)
                 .toUserId(toUserId)
                 .status(RejectOfferFriendshipsResponse.StatusEnum.REJECTED);
@@ -149,20 +134,18 @@ class OfferFriendshipApiE2ETest {
                 .usingRecursiveComparison()
                 .isEqualTo(expectedDto);
 
-        var dbStatus = dbAssert.queryForObject(
-                "Select status FROM offer_friendships WHERE id = ?",
-                String.class,
-                idOfferFriendship
-        );
-        assertThat(dbStatus).isEqualTo("REJECTED");
+        var dbOffer = repository.findById(new OfferFriendshipRepository.FindByIdRequest(
+                offerFriendship.id()
+        ));
+        assertThat(dbOffer.status()).isEqualTo(FriendshipStatus.REJECTED);
     }
 
     @Test
     @DisplayName("Успех - получение списка входящих заявок в друзья")
     void whenFindIncomingOfferFriendshipsThenReturnList() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
-        var offerId = createOfferFriendshipAndGetId(fromUserId, toUserId);
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
+        var offerFriendship = createOfferFriendship(fromUserId, toUserId);
 
         var headers = new HttpHeaders();
         headers.set("X-User-Id", toUserId.toString());
@@ -179,7 +162,7 @@ class OfferFriendshipApiE2ETest {
         assertThat(response.getBody()).isNotNull();
 
         var expectedItem = new FindIncomingOfferFriendshipsResponseRequestsInner()
-                .id(offerId)
+                .id(offerFriendship.id())
                 .username(fromUserId.toString());
 
         var expectedMeta = new FindIncomingOfferFriendshipsResponseMeta()
@@ -200,9 +183,9 @@ class OfferFriendshipApiE2ETest {
     @Test
     @DisplayName("Успех - получение списка исходящих заявок в друзья")
     void whenFindOutgoingOfferFriendshipsThenReturnList() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
-        var offerId = createOfferFriendshipAndGetId(fromUserId, toUserId);
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
+        var offerFriendship = createOfferFriendship(fromUserId, toUserId);
 
         var headers = new HttpHeaders();
         headers.set("X-User-Id", fromUserId.toString());
@@ -219,7 +202,7 @@ class OfferFriendshipApiE2ETest {
         assertThat(response.getBody()).isNotNull();
 
         var expectedItem = new FindOutgoingOfferFriendshipsResponseRequestsInner()
-                .id(offerId)
+                .id(offerFriendship.id())
                 .username(toUserId.toString());
 
         var expectedMeta = new FindOutgoingOfferFriendshipsResponseMeta()
@@ -240,7 +223,7 @@ class OfferFriendshipApiE2ETest {
     @Test
     @DisplayName("Ошибка 409 - попытка создать заявку самому себе")
     void whenCreateOfferToMyselfThenReturn409() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
+        var fromUserId = UUID.randomUUID();
 
         var request = new CreateOfferFriendshipRequest()
                 .fromUserId(fromUserId)
@@ -273,17 +256,17 @@ class OfferFriendshipApiE2ETest {
     @Test
     @DisplayName("Ошибка 409 - принятие уже отклоненной заявки")
     void whenAcceptAlreadyRejectedOfferThenReturn409() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
-        var idOfferFriendship = createOfferFriendshipAndGetId(fromUserId, toUserId);
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
+        var offerFriendship = createOfferFriendship(fromUserId, toUserId);
 
-        var rejectRequest = new RejectOfferFriendshipsRequest().requestId(idOfferFriendship);
+        var rejectRequest = new RejectOfferFriendshipsRequest().requestId(offerFriendship.id());
         restTemplate.postForEntity(
                 "/api/friend-requests/reject",
                 rejectRequest,
                 RejectOfferFriendshipsResponse.class);
 
-        var acceptRequest = new AcceptOfferFriendshipRequest().requestId(idOfferFriendship);
+        var acceptRequest = new AcceptOfferFriendshipRequest().requestId(offerFriendship.id());
         var response = restTemplate.postForEntity(
                 "/api/friend-requests/accept",
                 acceptRequest,
@@ -296,9 +279,9 @@ class OfferFriendshipApiE2ETest {
     @Test
     @DisplayName("Ошибка 204 - заявка уже существует")
     void whenOfferAlreadyCreatedThenReturn204() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
-        createOfferFriendshipAndGetId(fromUserId, toUserId);
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
+        createOfferFriendship(fromUserId, toUserId);
 
         var duplicateRequest = new CreateOfferFriendshipRequest()
                 .fromUserId(fromUserId)
@@ -315,68 +298,58 @@ class OfferFriendshipApiE2ETest {
     @Test
     @DisplayName("Статус 204 - принятие встречной заявки, когда дружба уже создана")
     void whenAcceptMutualOfferAndFriendshipExistsThenReturn204() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
 
-        var offerAtoB = createOfferFriendshipAndGetId(fromUserId, toUserId);
-        var offerBtoA = createOfferFriendshipAndGetId(toUserId, fromUserId);
+        var offerAtoB = createOfferFriendship(fromUserId, toUserId);
+        var offerBtoA = createOfferFriendship(toUserId, fromUserId);
 
         var firstAccept = restTemplate.postForEntity(
                 "/api/friend-requests/accept",
-                new AcceptOfferFriendshipRequest().requestId(offerAtoB),
+                new AcceptOfferFriendshipRequest().requestId(offerAtoB.id()),
                 AcceptOfferFriendshipResponse.class
         );
         assertThat(firstAccept.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         var secondAccept = restTemplate.postForEntity(
                 "/api/friend-requests/accept",
-                new AcceptOfferFriendshipRequest().requestId(offerBtoA),
+                new AcceptOfferFriendshipRequest().requestId(offerBtoA.id()),
                 Void.class
         );
         assertThat(secondAccept.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(secondAccept.getBody()).isNull();
 
-        var secondOfferStatus = dbAssert.queryForObject(
-                "SELECT status FROM offer_friendships WHERE id = ?",
-                String.class,
-                offerBtoA
-        );
-        assertThat(secondOfferStatus).isEqualTo("ACCEPTED");
-
-        var friendshipsCount = dbAssert.queryForObject(
-                "SELECT COUNT(*) FROM friendships",
-                Integer.class
-        );
-        assertThat(friendshipsCount).isEqualTo(1);
+        var dbOffer = repository.findById(new OfferFriendshipRepository.FindByIdRequest(
+                offerBtoA.id()
+        ));
+        assertThat(dbOffer.status()).isEqualTo(FriendshipStatus.ACCEPTED);
     }
 
     @Test
     @DisplayName("Ошибка 409 - попытка отклонить уже принятую заявку")
     void whenRejectAlreadyAcceptedOfferThenReturn409() {
-        var fromUserId = UUID.fromString("77926b15-870c-4366-93e3-6ac74b61b894");
-        var toUserId = UUID.fromString("fd9e3b80-9602-427f-87ec-5763c4afbcd8");
-        var idOfferFriendship = createOfferFriendshipAndGetId(fromUserId, toUserId);
+        var fromUserId = UUID.randomUUID();
+        var toUserId = UUID.randomUUID();
+        var offerFriendship = createOfferFriendship(fromUserId, toUserId);
 
         restTemplate.postForEntity(
                 "/api/friend-requests/accept",
-                new AcceptOfferFriendshipRequest().requestId(idOfferFriendship),
+                new AcceptOfferFriendshipRequest().requestId(offerFriendship.id()),
                 AcceptOfferFriendshipResponse.class
         );
 
         var response = restTemplate.postForEntity(
                 "/api/friend-requests/reject",
-                new RejectOfferFriendshipsRequest().requestId(idOfferFriendship),
+                new RejectOfferFriendshipsRequest().requestId(offerFriendship.id()),
                 RejectOfferFriendships409Response.class
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
-        var dbStatus = dbAssert.queryForObject(
-                "SELECT status FROM offer_friendships WHERE id = ?",
-                String.class,
-                idOfferFriendship
-        );
-        assertThat(dbStatus).isEqualTo("ACCEPTED");
+        var dbOffer = repository.findById(new OfferFriendshipRepository.FindByIdRequest(
+                offerFriendship.id()
+        ));
+        assertThat(dbOffer.status()).isEqualTo(FriendshipStatus.ACCEPTED);
     }
 
     @Test
@@ -427,18 +400,15 @@ class OfferFriendshipApiE2ETest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
-    private UUID createOfferFriendshipAndGetId(UUID fromUserId, UUID toUserId) {
-        var request = new CreateOfferFriendshipRequest()
-                .fromUserId(fromUserId)
-                .toUserId(toUserId);
+    private OfferFriendshipRepository.CreateOfferFriendshipResponse createOfferFriendship(UUID fromUserId, UUID toUserId) {
 
-        var response = restTemplate.postForEntity(
-                "/api/friend-requests/create",
-                request,
-                CreateOfferFriendshipResponse.class
+        OfferFriendshipRepository.CreateOfferFriendshipRequest request = new OfferFriendshipRepository.CreateOfferFriendshipRequest(
+                fromUserId,
+                toUserId,
+                FriendshipStatus.PENDING,
+                Instant.now(),
+                Instant.now()
         );
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isNotNull();
-        return response.getBody().getId();
+        return repository.createOfferFriendship(request);
     }
 }

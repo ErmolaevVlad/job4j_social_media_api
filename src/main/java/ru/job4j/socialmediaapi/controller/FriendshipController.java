@@ -7,7 +7,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import ru.job4j.socialmediaapi.controller.api.FriendshipsApi;
 import ru.job4j.socialmediaapi.controller.dto.FindFriendshipsResponse;
-import ru.job4j.socialmediaapi.exception.DomainException;
 import ru.job4j.socialmediaapi.service.FriendshipService;
 
 import java.util.UUID;
@@ -25,7 +24,7 @@ public class FriendshipController implements FriendshipsApi {
     @Override
     public ResponseEntity<FindFriendshipsResponse> findFriendships(
             Integer page,
-            Integer limit) throws DomainException {
+            Integer limit) {
 
         var servletRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
                 .getRequest();
@@ -40,7 +39,7 @@ public class FriendshipController implements FriendshipsApi {
     }
 
     @Override
-    public ResponseEntity<Void> deleteFriend(@PathVariable("friendId") UUID secondUserId) throws DomainException {
+    public ResponseEntity<Void> deleteFriend(@PathVariable("friendId") UUID secondUserId) {
 
         var servletRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
                 .getRequest();

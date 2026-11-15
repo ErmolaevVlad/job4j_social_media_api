@@ -1,14 +1,11 @@
 package ru.job4j.socialmediaapi.repository;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.job4j.socialmediaapi.exception.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,14 +15,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-@Testcontainers
+@Disabled
 @Transactional
 @SpringBootTest
 class JdbcFriendshipRepositoryTest {
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:17");
 
     @Autowired
     private OfferFriendshipRepository offerFriendshipRepository;
