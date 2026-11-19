@@ -18,10 +18,12 @@ post:
               type: string
               minLength: 1
               maxLength: 200
+              pattern: '.*\S.*'
               example: "Заголовок новой публикации"
             content:
               type: string
               minLength: 1
+              pattern: '.*\S.*'
               example: "Текст публикации"
   responses:
     '201':
