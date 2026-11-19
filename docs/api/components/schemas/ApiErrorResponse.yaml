@@ -1,0 +1,13 @@
+type: object
+required:
+  - status
+  - detail
+  - code
+properties:
+  status:
+    type: integer
+    format: int32
+  detail:
+    type: string
+  code:
+    $ref: './ApiErrorCode.yaml'

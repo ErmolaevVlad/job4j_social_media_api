@@ -1,0 +1,86 @@
+post:
+  tags:
+    - Posts
+  summary: Создать новую публикацию
+  operationId: createPost
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          title: CreatePostRequest
+          type: object
+          required:
+            - title
+            - content
+          properties:
+            title:
+              type: string
+              minLength: 1
+              maxLength: 200
+              example: "Заголовок новой публикации"
+            content:
+              type: string
+              minLength: 1
+              example: "Текст публикации"
+  responses:
+    '201':
+      description: Публикация успешно создана
+      content:
+        application/json:
+          schema:
+            title: CreatePostResponse
+            type: object
+            required:
+              - id
+              - authorId
+              - title
+              - content
+              - status
+              - createdAt
+              - updatedAt
+            properties:
+              id:
+                type: string
+                format: uuid
+                example: "99999999-9999-9999-9999-999999999999"
+              authorId:
+                type: string
+                format: uuid
+                example: "11111111-1111-1111-1111-111111111111"
+              title:
+                type: string
+                maxLength: 255
+                example: "Пост номер 1"
+              content:
+                type: string
+              status:
+                type: string
+                enum: [ PUBLISHED, DELETED ]
+                example: PUBLISHED
+              createdAt:
+                type: string
+                format: date-time
+              updatedAt:
+                type: string
+                format: date-time
+    '400':
+      description: Некорректные вхдные данные
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../components/schemas/ApiErrorResponse.yaml'
+          example:
+            status: 400
+            detail: Некорректные входные данные
+            code: VALIDATION_ERROR
+    '403':
+      description: Нет прав на обработку заявки
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../components/schemas/ApiErrorResponse.yaml'
+          example:
+            status: 403
+            detail: Недостаточно прав для создания публикации
+            code: ACCESS_DENIED

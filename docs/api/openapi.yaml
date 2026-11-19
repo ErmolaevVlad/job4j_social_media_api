@@ -29,6 +29,14 @@ paths:
     $ref: './paths/subscriptions/subscriptions.yaml'
   /api/subscriptions/unsubscribe/{targetUserId}:
     $ref: './paths/subscriptions/unsubscribe.yaml'
+  /api/posts:
+    $ref: './paths/posts/create.yaml'
+  /api/posts/{postId}:
+    $ref: './paths/posts/by-id.yaml'
+  /api/users/{userId}/posts:
+    $ref: './paths/posts/by-user.yaml'
+  /api/feed:
+    $ref: './paths/feed/get.yaml'
 
 components:
   securitySchemes:
