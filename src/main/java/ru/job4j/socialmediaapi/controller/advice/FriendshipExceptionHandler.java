@@ -1,16 +1,17 @@
-package ru.job4j.socialmediaapi.controller.advisor;
+package ru.job4j.socialmediaapi.controller.advice;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.job4j.socialmediaapi.controller.FriendshipController;
 import ru.job4j.socialmediaapi.exception.DuplicateFriendshipException;
 import ru.job4j.socialmediaapi.exception.FriendNotFoundException;
 
 import java.time.Instant;
 
-@RestControllerAdvice
-public class FriendshipAdvisorController {
+@RestControllerAdvice(assignableTypes = FriendshipController.class)
+public class FriendshipExceptionHandler {
 
     @ExceptionHandler(FriendNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleFriendNotFound(FriendNotFoundException ex) {
@@ -21,10 +22,5 @@ public class FriendshipAdvisorController {
                 Instant.now()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    @ExceptionHandler(DuplicateFriendshipException.class)
-    public ResponseEntity<Void> handleDuplicateFriendship(DuplicateFriendshipException ex) {
-        return ResponseEntity.noContent().build();
     }
 }

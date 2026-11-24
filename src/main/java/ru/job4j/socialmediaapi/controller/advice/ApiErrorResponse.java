@@ -1,4 +1,4 @@
-package ru.job4j.socialmediaapi.controller.advisor;
+package ru.job4j.socialmediaapi.controller.advice;
 
 import java.time.Instant;
 

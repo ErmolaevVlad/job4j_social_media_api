@@ -1,15 +1,16 @@
-package ru.job4j.socialmediaapi.controller.advisor;
+package ru.job4j.socialmediaapi.controller.advice;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.job4j.socialmediaapi.controller.OfferFriendshipController;
 import ru.job4j.socialmediaapi.exception.*;
 
 import java.time.Instant;
 
-@RestControllerAdvice
-public class OfferFriendshipAdvisorController {
+@RestControllerAdvice(assignableTypes = OfferFriendshipController.class)
+public class OfferFriendshipExceptionHandler {
 
     @ExceptionHandler(SelfFriendshipException.class)
     public ResponseEntity<ApiErrorResponse> handleSelfFriendship(SelfFriendshipException ex) {
@@ -59,5 +60,10 @@ public class OfferFriendshipAdvisorController {
                 Instant.now()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(DuplicateFriendshipException.class)
+    public ResponseEntity<Void> handleDuplicateFriendship(DuplicateFriendshipException ex) {
+        return ResponseEntity.noContent().build();
     }
 }
