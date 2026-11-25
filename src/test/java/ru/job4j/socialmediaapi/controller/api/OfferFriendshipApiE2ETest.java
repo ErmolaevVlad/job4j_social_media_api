@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.*;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.job4j.socialmediaapi.controller.dto.*;
@@ -14,6 +16,10 @@ import ru.job4j.socialmediaapi.repository.FriendshipStatus;
 import ru.job4j.socialmediaapi.repository.OfferFriendshipRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -21,10 +27,14 @@ import java.util.UUID;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 @AutoConfigureTestRestTemplate
+@AutoConfigureMockMvc
 class OfferFriendshipApiE2ETest extends BaseIntegrationTest {
 
     @Autowired
     TestRestTemplate restTemplate;
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @Autowired
     OfferFriendshipRepository repository;
@@ -398,6 +408,28 @@ class OfferFriendshipApiE2ETest extends BaseIntegrationTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    @DisplayName("Ошибка 400 - невалидный JSON должен вернуть MALFORMED_JSON ")
+    void whenJsonIsMalformedThenReturn400() throws Exception {
+        String malformedJson = "{ \"broken\": ";
+        mockMvc.perform(post(OfferFriendshipApi.PATH_CREATE_OFFER_FRIENDSHIP)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(malformedJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value("MALFORMED_JSON"));
+
+    }
+
+    @Test
+    @DisplayName("Возвращает 405 для неподдерживаемого HTTP-метода")
+    void shouldReturn405WhenMethodIsNotAllowed() throws Exception {
+        mockMvc.perform(get(OfferFriendshipApi.PATH_CREATE_OFFER_FRIENDSHIP))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(header().exists(HttpHeaders.ALLOW))
+                .andExpect(header().string(HttpHeaders.ALLOW, containsString("POST")));
     }
 
     private OfferFriendshipRepository.CreateOfferFriendshipResponse createOfferFriendship(UUID fromUserId, UUID toUserId) {

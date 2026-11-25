@@ -1,17 +1,18 @@
-package ru.job4j.socialmediaapi.controller.advisor;
+package ru.job4j.socialmediaapi.controller.advice;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.job4j.socialmediaapi.controller.SubscriptionController;
 import ru.job4j.socialmediaapi.exception.DuplicateSubscriptionException;
 import ru.job4j.socialmediaapi.exception.SelfSubscriptionException;
 import ru.job4j.socialmediaapi.exception.SubscriptionNotFoundException;
 
 import java.time.Instant;
 
-@RestControllerAdvice
-public class SubscriptionAdvisorController {
+@RestControllerAdvice(assignableTypes = SubscriptionController.class)
+public class SubscriptionExceptionHandler {
     @ExceptionHandler(DuplicateSubscriptionException.class)
     public ResponseEntity<Void> handleDuplicateFriendshipRequest() {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
