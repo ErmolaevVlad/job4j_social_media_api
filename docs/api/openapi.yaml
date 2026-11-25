@@ -44,3 +44,40 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  schemas:
+    ApiErrorCode:
+      type: string
+      enum:
+        - SELF_FRIEND_REQUEST
+        - FRIEND_REQUEST_REJECTED
+        - MALFORMED_JSON
+        - VALIDATION_ERROR
+    ApiErrorResponse:
+      type: object
+      required: [ status, detail, code ]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        code:
+          $ref: '#/components/schemas/ApiErrorCode'
+        violations:
+          type: array
+          items:
+            type: object
+            required: [ field, message ]
+            properties:
+              field:
+                type: string
+              message:
+                type: string

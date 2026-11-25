@@ -1,12 +1,15 @@
 package ru.job4j.socialmediaapi.controller.advice;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.job4j.socialmediaapi.controller.OfferFriendshipController;
+import ru.job4j.socialmediaapi.controller.dto.ApiErrorCode;
 import ru.job4j.socialmediaapi.exception.*;
 
+import java.net.URI;
 import java.time.Instant;
 
 @RestControllerAdvice(assignableTypes = OfferFriendshipController.class)
@@ -65,5 +68,14 @@ public class OfferFriendshipExceptionHandler {
     @ExceptionHandler(DuplicateFriendshipException.class)
     public ResponseEntity<Void> handleDuplicateFriendship(DuplicateFriendshipException ex) {
         return ResponseEntity.noContent().build();
+    }
+
+    private ProblemDetail problem(HttpStatus status, URI type, String title,
+                                  String detail, ApiErrorCode code) {
+        var problem = ProblemDetail.forStatusAndDetail(status, detail);
+        problem.setType(type);
+        problem.setTitle(title);
+        problem.setProperty("code", code.getValue());
+        return problem;
     }
 }

@@ -49,6 +49,7 @@ public class OfferFriendshipService {
         if (offerFriendship.status() != FriendshipStatus.PENDING) {
             throw new OfferFriendshipAlreadyProcessedException("Friendship request has already been processed");
         }
+        // Добавить 204 если заявка уже принята
         UUID user1 = offerFriendship.fromUserId();
         UUID user2 = offerFriendship.toUserId();
 
