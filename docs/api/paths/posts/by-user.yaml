@@ -1,0 +1,118 @@
+get:
+  tags:
+    - Posts
+  summary: Получить публикации пользователя
+  operationId: getPostsByUser
+  parameters:
+    - name: userId
+      in: path
+      required: true
+      description: Идентификатор автора публикаций
+      schema:
+        type: string
+        format: uuid
+        example: "11111111-1111-1111-1111-111111111111"
+    - name: page
+      in: query
+      required: false
+      description: Номер страницы (начиная с 0)
+      schema:
+        type: integer
+        format: int32
+        default: 0
+        minimum: 0
+    - name: size
+      in: query
+      required: false
+      description: Размер страницы
+      schema:
+        type: integer
+        format: int32
+        default: 20
+        minimum: 1
+        maximum: 100
+  responses:
+    '200':
+      description: Список публикаций пользователя успешно получен
+      content:
+        application/json:
+          schema:
+            title: UserPostsPageResponse
+            type: object
+            required:
+              - items
+              - page
+              - size
+              - totalElements
+            properties:
+              items:
+                type: array
+                items:
+                  title: UserPostItem
+                  type: object
+                  required:
+                    - id
+                    - authorId
+                    - title
+                    - content
+                    - status
+                    - createdAt
+                    - updatedAt
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                      example: "99999999-9999-9999-9999-999999999999"
+                    authorId:
+                      type: string
+                      format: uuid
+                      example: "11111111-1111-1111-1111-111111111111"
+                    title:
+                      type: string
+                      maxLength: 255
+                      example: "Пост номер 1"
+                    content:
+                      type: string
+                      example: "Текст публикации"
+                    status:
+                      type: string
+                      enum: [ PUBLISHED, DELETED ]
+                      example: PUBLISHED
+                    createdAt:
+                      type: string
+                      format: date-time
+                    updatedAt:
+                      type: string
+                      format: date-time
+              page:
+                type: integer
+                format: int32
+                example: 0
+              size:
+                type: integer
+                format: int32
+                example: 20
+              totalElements:
+                type: integer
+                format: int64
+                example: 42
+    '400':
+      description: Некорректные параметры пагинации или ID пользователя
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          example:
+            status: 400
+            detail: Некорректные входные данные
+            code: VALIDATION_ERROR
+    '404':
+      description: Пользователь не найден
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          example:
+            status: 404
+            detail: Пользователь с указанным ID не найден
+            code: USER_NOT_FOUND

@@ -80,22 +80,9 @@ put:
       content:
         application/problem+json:
           schema:
-            type: object
-            required:
-              - title
-              - status
-              - detail
-              - code
-            properties:
-              title:
-                type: string
-                example: Невозможно подписаться
-              status:
-                type: integer
-                example: 409
-              detail:
-                type: string
-                example: Вы не можете подписаться на самого себя
-              code:
-                type: string
-                example: CANNOT_SUBSCRIBE_TO_SELF
+              $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          example:
+            title: Невозможно подписаться
+            status: 409
+            detail: Вы не можете подписаться на самого себя
+            code: CANNOT_SUBSCRIBE_TO_SELF

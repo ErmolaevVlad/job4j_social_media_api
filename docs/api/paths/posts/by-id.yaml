@@ -1,0 +1,194 @@
+parameters:
+  - name: postId
+    in: path
+    required: true
+    description: Идентификатор публикации
+    schema:
+      type: string
+      format: uuid
+      example: "99999999-9999-9999-9999-999999999999"
+
+get:
+  tags:
+    - Posts
+  summary: Получить публикацию по ID
+  operationId: getPostById
+  responses:
+    '200':
+      description: Публикация успешно получена
+      content:
+        application/json:
+          schema:
+            title: GetPostResponse
+            type: object
+            required:
+              - id
+              - authorId
+              - title
+              - content
+              - status
+              - createdAt
+              - updatedAt
+            properties:
+              id:
+                type: string
+                format: uuid
+                example: "99999999-9999-9999-9999-999999999999"
+              authorId:
+                type: string
+                format: uuid
+                example: "11111111-1111-1111-1111-111111111111"
+              title:
+                type: string
+                maxLength: 255
+                example: "Пост номер 1"
+              content:
+                type: string
+                example: "Текст публикации"
+              status:
+                type: string
+                enum: [ PUBLISHED, DELETED ]
+                example: PUBLISHED
+              createdAt:
+                type: string
+                format: date-time
+              updatedAt:
+                type: string
+                format: date-time
+    '404':
+      description: Публикация не найдена
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          example:
+            status: 404
+            detail: Публикация с указанным ID не найдена
+            code: POST_NOT_FOUND
+
+put:
+  tags:
+    - Posts
+  summary: Обновить публикацию
+  operationId: updatePost
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          title: UpdatePostRequest
+          type: object
+          required:
+            - title
+            - content
+          properties:
+            title:
+              type: string
+              minLength: 1
+              maxLength: 255
+              example: "Обновленный заголовок"
+            content:
+              type: string
+              minLength: 1
+              example: "Обновленный текст публикации"
+  responses:
+    '200':
+      description: Публикация успешно обновлена
+      content:
+        application/json:
+          schema:
+            title: UpdatePostResponse
+            type: object
+            required:
+              - id
+              - authorId
+              - title
+              - content
+              - status
+              - createdAt
+              - updatedAt
+            properties:
+              id:
+                type: string
+                format: uuid
+                example: "99999999-9999-9999-9999-999999999999"
+              authorId:
+                type: string
+                format: uuid
+                example: "11111111-1111-1111-1111-111111111111"
+              title:
+                type: string
+                maxLength: 255
+                example: "Обновленный заголовок"
+              content:
+                type: string
+                example: "Обновленный текст публикации"
+              status:
+                type: string
+                enum: [ PUBLISHED, DELETED ]
+                example: PUBLISHED
+              createdAt:
+                type: string
+                format: date-time
+              updatedAt:
+                type: string
+                format: date-time
+    '400':
+      description: Некорректные входные данные
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          example:
+            status: 400
+            detail: Некорректные входные данные
+            code: VALIDATION_ERROR
+    '403':
+      description: Нет прав на редактирование публикации
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          example:
+            status: 403
+            detail: Редактировать публикацию может только ее автор
+            code: ACCESS_DENIED
+    '404':
+      description: Публикация не найдена
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          example:
+            status: 404
+            detail: Публикация с указанным ID не найдена
+            code: POST_NOT_FOUND
+
+delete:
+  tags:
+    - Posts
+  summary: Удалить публикацию
+  operationId: deletePost
+  responses:
+    '204':
+      description: Публикация успешно удалена
+    '403':
+      description: Нет прав на удаление публикации
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          example:
+            status: 403
+            detail: Удалять публикацию может только ее автор
+            code: ACCESS_DENIED
+    '404':
+      description: Публикация не найдена
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          example:
+            status: 404
+            detail: Публикация с указанным ID не найдена
+            code: POST_NOT_FOUND
