@@ -29,6 +29,14 @@ paths:
     $ref: './paths/subscriptions/subscriptions.yaml'
   /api/subscriptions/unsubscribe/{targetUserId}:
     $ref: './paths/subscriptions/unsubscribe.yaml'
+  /api/posts:
+    $ref: './paths/posts/create.yaml'
+  /api/posts/{postId}:
+    $ref: './paths/posts/by-id.yaml'
+  /api/users/{userId}/posts:
+    $ref: './paths/posts/by-user.yaml'
+  /api/feed:
+    $ref: './paths/feed/get.yaml'
 
 components:
   securitySchemes:
@@ -36,3 +44,45 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  schemas:
+    ApiErrorCode:
+      type: string
+      enum:
+        - SELF_FRIEND_REQUEST
+        - FRIEND_REQUEST_REJECTED
+        - FRIEND_REQUEST_ACCEPTED
+        - MALFORMED_JSON
+        - VALIDATION_ERROR
+        - ACCESS_DENIED
+        - FRIEND_REQUEST_NOT_FOUND
+        - USER_NOT_FOUND
+        - CANNOT_SUBSCRIBE_TO_SELF
+    ApiErrorResponse:
+      type: object
+      required: [ status, detail, code ]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        code:
+          $ref: '#/components/schemas/ApiErrorCode'
+        violations:
+          type: array
+          items:
+            type: object
+            required: [ field, message ]
+            properties:
+              field:
+                type: string
+              message:
+                type: string
