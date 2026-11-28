@@ -50,8 +50,13 @@ components:
       enum:
         - SELF_FRIEND_REQUEST
         - FRIEND_REQUEST_REJECTED
+        - FRIEND_REQUEST_ACCEPTED
         - MALFORMED_JSON
         - VALIDATION_ERROR
+        - ACCESS_DENIED
+        - FRIEND_REQUEST_NOT_FOUND
+        - USER_NOT_FOUND
+        - CANNOT_SUBSCRIBE_TO_SELF
     ApiErrorResponse:
       type: object
       required: [ status, detail, code ]

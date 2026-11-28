@@ -213,7 +213,7 @@ class SubscriptionsApiE2ETest extends BaseIntegrationTest {
                 "/api/subscriptions/subscribe/{targetUserId}",
                 HttpMethod.PUT,
                 entity,
-                CreateFollower409Response.class,
+                ApiErrorResponse.class,
                 userId
         );
 

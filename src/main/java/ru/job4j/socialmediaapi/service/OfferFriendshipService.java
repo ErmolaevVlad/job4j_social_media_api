@@ -3,9 +3,7 @@ package ru.job4j.socialmediaapi.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.job4j.socialmediaapi.controller.dto.*;
-import ru.job4j.socialmediaapi.exception.DomainException;
-import ru.job4j.socialmediaapi.exception.DuplicateFriendshipException;
-import ru.job4j.socialmediaapi.exception.OfferFriendshipAlreadyProcessedException;
+import ru.job4j.socialmediaapi.exception.*;
 import ru.job4j.socialmediaapi.repository.FriendshipRepository;
 import ru.job4j.socialmediaapi.repository.FriendshipStatus;
 import ru.job4j.socialmediaapi.repository.OfferFriendshipRepository;
@@ -46,10 +44,11 @@ public class OfferFriendshipService {
     public FriendshipRepository.CreateFriendshipResponse acceptOfferFriendship(AcceptOfferFriendshipRequest apiRequest) throws DomainException {
         var offerFriendship = offerFriendshipRepository.findById(
                 new OfferFriendshipRepository.FindByIdRequest(apiRequest.getRequestId()));
-        if (offerFriendship.status() != FriendshipStatus.PENDING) {
-            throw new OfferFriendshipAlreadyProcessedException("Friendship request has already been processed");
+        if (offerFriendship.status() == FriendshipStatus.ACCEPTED) {
+            throw new OfferFriendshipAlreadyAcceptException("Friendship request has already been accept");
+        } else if (offerFriendship.status() == FriendshipStatus.REJECTED) {
+            throw new OfferFriendshipAlreadyRejectedException("Friendship request has already been reject");
         }
-        // Добавить 204 если заявка уже принята
         UUID user1 = offerFriendship.fromUserId();
         UUID user2 = offerFriendship.toUserId();
 

@@ -54,50 +54,44 @@ post:
                 example: PENDING
     '204':
       description: Активная заявка уже существует
+    '400':
+      description: Некорректные входные данные или не удалось прочитать JSON
+      content:
+        application/problem+json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          examples:
+            ValidationError:
+              summary: Ошибка валидации полей
+              value:
+                title: Ошибка валидации
+                status: 400
+                detail: Некорректные входные данные
+                code: VALIDATION_ERROR
+            MalformedJson:
+              summary: Некорректный JSON запроса
+              value:
+                title: Bad Request
+                status: 400
+                detail: Не удалось прочитать JSON запроса
+                code: MALFORMED_JSON
     '404':
       description: Пользователь не найден
       content:
         application/problem+json:
           schema:
-            type: object
-            required:
-              - title
-              - status
-              - detail
-              - code
-            properties:
-              title:
-                type: string
-                example: Пользователь не найден
-              status:
-                type: integer
-                example: 404
-              detail:
-                type: string
-                example: Пользователь не найден
-              code:
-                type: string
-                example: USER_NOT_FOUND
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
+          example:
+            title: Пользователь не найден
+            status: 404
+            detail: Пользователь не найден
+            code: USER_NOT_FOUND
     '409':
       description: Заявка отклонена или адресована самому себе
       content:
         application/problem+json:
           schema:
-            type: object
-            required:
-              - title
-              - status
-              - detail
-              - code
-            properties:
-              title:
-                type: string
-              status:
-                type: integer
-              detail:
-                type: string
-              code:
-                type: string
+            $ref: '../../openapi.yaml#/components/schemas/ApiErrorResponse'
           examples:
             RequestRejected:
               summary: Пользователь уже отклонил заявку ранее
@@ -112,4 +106,4 @@ post:
                 title: Ошибка бизнес-логики
                 status: 409
                 detail: Нельзя отправить заявку в друзья самому себе
-                code: CANNOT_SEND_FRIEND_REQUEST_TO_SELF
+                code: SELF_FRIEND_REQUEST

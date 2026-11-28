@@ -9,72 +9,39 @@ import ru.job4j.socialmediaapi.controller.OfferFriendshipController;
 import ru.job4j.socialmediaapi.controller.dto.ApiErrorCode;
 import ru.job4j.socialmediaapi.exception.*;
 
-import java.net.URI;
-import java.time.Instant;
-
 @RestControllerAdvice(assignableTypes = OfferFriendshipController.class)
 public class OfferFriendshipExceptionHandler {
 
     @ExceptionHandler(SelfFriendshipException.class)
-    public ResponseEntity<ApiErrorResponse> handleSelfFriendship(SelfFriendshipException ex) {
-        var errorResponse = new ApiErrorResponse(
-                HttpStatus.CONFLICT.value(),
-                "CONFLICT",
-                ex.getMessage(),
-                Instant.now()
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-    }
-
-    @ExceptionHandler(DuplicateFriendshipRequestException.class)
-    public ResponseEntity<Void> handleDuplicateFriendshipRequest() {
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    public ProblemDetail handleSelfFriendship(SelfFriendshipException ex) {
+        return problem(HttpStatus.CONFLICT, ex.getMessage(), ApiErrorCode.SELF_FRIEND_REQUEST);
     }
 
     @ExceptionHandler(OfferFriendshipNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleOfferFriendshipNotFound(OfferFriendshipNotFoundException ex) {
-        var errorResponse = new ApiErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                "NOT_FOUND",
-                ex.getMessage(),
-                Instant.now()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    public ProblemDetail handleOfferFriendshipNotFound(OfferFriendshipNotFoundException ex) {
+        return problem(HttpStatus.NOT_FOUND, ex.getMessage(), ApiErrorCode.FRIEND_REQUEST_NOT_FOUND);
     }
 
-    @ExceptionHandler(OfferFriendshipAlreadyProcessedException.class)
-    public ResponseEntity<ApiErrorResponse> offerFriendshipAlreadyProcessed(OfferFriendshipAlreadyProcessedException ex) {
-        var errorResponse = new ApiErrorResponse(
-                HttpStatus.CONFLICT.value(),
-                "CONFLICT",
-                ex.getMessage(),
-                Instant.now()
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    @ExceptionHandler({
+            OfferFriendshipAlreadyProcessedException.class,
+            OfferFriendshipAlreadyRejectedException.class
+    })
+    public ProblemDetail handleRejectedOrProcessed(RuntimeException ex) {
+        return problem(HttpStatus.CONFLICT, ex.getMessage(), ApiErrorCode.FRIEND_REQUEST_REJECTED);
     }
 
-    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
-    public ResponseEntity<ApiErrorResponse> handleConstraintViolation(
-            jakarta.validation.ConstraintViolationException ex) {
-        var errorResponse = new ApiErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "BAD_REQUEST",
-                ex.getMessage(),
-                Instant.now()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
-
-    @ExceptionHandler(DuplicateFriendshipException.class)
-    public ResponseEntity<Void> handleDuplicateFriendship(DuplicateFriendshipException ex) {
+    @ExceptionHandler({
+            DuplicateFriendshipRequestException.class,
+            OfferFriendshipAlreadyAcceptException.class,
+            DuplicateFriendshipException.class
+    })
+    public ResponseEntity<Void> handleNoContent() {
         return ResponseEntity.noContent().build();
     }
 
-    private ProblemDetail problem(HttpStatus status, URI type, String title,
+    private ProblemDetail problem(HttpStatus status,
                                   String detail, ApiErrorCode code) {
         var problem = ProblemDetail.forStatusAndDetail(status, detail);
-        problem.setType(type);
-        problem.setTitle(title);
         problem.setProperty("code", code.getValue());
         return problem;
     }

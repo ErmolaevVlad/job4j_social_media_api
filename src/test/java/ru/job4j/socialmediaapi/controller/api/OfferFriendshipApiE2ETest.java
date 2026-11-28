@@ -231,6 +231,27 @@ class OfferFriendshipApiE2ETest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("Ошибка 400 - попытка создать заявку без toUserId")
+    void whenCreateOfferWithoutToUserIdThenReturn400() {
+        var request = new CreateOfferFriendshipRequest()
+                .fromUserId(UUID.randomUUID());
+
+        var response = restTemplate.postForEntity(
+                "/api/friend-requests/create",
+                request,
+                ApiErrorResponse.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_PROBLEM_JSON);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getCode()).isEqualTo(ApiErrorCode.VALIDATION_ERROR);
+        assertThat(response.getBody().getViolations())
+                .extracting(ApiErrorResponseViolationsInner::getField)
+                .contains("toUserId");
+    }
+
+    @Test
     @DisplayName("Ошибка 409 - попытка создать заявку самому себе")
     void whenCreateOfferToMyselfThenReturn409() {
         var fromUserId = UUID.randomUUID();
@@ -242,7 +263,7 @@ class OfferFriendshipApiE2ETest extends BaseIntegrationTest {
         var response = restTemplate.postForEntity(
                 "/api/friend-requests/create",
                 request,
-                CreateOfferFriendship409Response.class
+                ApiErrorResponse.class
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
@@ -257,7 +278,7 @@ class OfferFriendshipApiE2ETest extends BaseIntegrationTest {
         var response = restTemplate.postForEntity(
                 "/api/friend-requests/accept",
                 acceptRequest,
-                AcceptOfferFriendship404Response.class
+                ApiErrorResponse.class
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -280,7 +301,7 @@ class OfferFriendshipApiE2ETest extends BaseIntegrationTest {
         var response = restTemplate.postForEntity(
                 "/api/friend-requests/accept",
                 acceptRequest,
-                AcceptOfferFriendship409Response.class
+                ApiErrorResponse.class
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
@@ -351,7 +372,7 @@ class OfferFriendshipApiE2ETest extends BaseIntegrationTest {
         var response = restTemplate.postForEntity(
                 "/api/friend-requests/reject",
                 new RejectOfferFriendshipsRequest().requestId(offerFriendship.id()),
-                RejectOfferFriendships409Response.class
+                ApiErrorResponse.class
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
@@ -371,7 +392,7 @@ class OfferFriendshipApiE2ETest extends BaseIntegrationTest {
         var response = restTemplate.postForEntity(
                 "/api/friend-requests/reject",
                 rejectRequest,
-                RejectOfferFriendships404Response.class
+                ApiErrorResponse.class
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -386,7 +407,7 @@ class OfferFriendshipApiE2ETest extends BaseIntegrationTest {
         var response = restTemplate.postForEntity(
                 "/api/friend-requests/accept",
                 invalidRequest,
-                AcceptOfferFriendship400Response.class
+                ApiErrorResponse.class
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
